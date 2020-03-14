@@ -1,0 +1,28 @@
+Source Program:
+var x, y;
+begin
+	y := 3;
+	x := y + 56; 
+	/*Hanuman*/
+end.
+
+Lexeme Table:
+lexeme	token type
+var			29
+x			2
+,			0
+y			2
+;			0
+begin			21
+y			2
+:=			0
+3			3
+;			0
+x			2
+:=			0
+y			2
++			0
+56			3
+;			0
+end			22
+.			0
