@@ -460,12 +460,17 @@ int main() {
            } //End of Symbol, Space, or Comment
        } //End of Not a Letter
    } //End of character while loop 
-   
+
     convertAlphaReserved();
     convertDigitReserved(); 
     convertSymbolReserved(); 
 
    for(int i = 0; i < globalCounter; i++) {
+     int tempsize = strlen(tok[i].identifier); 
+     if(tempsize >= 5) {
+     fprintf(ofp, "%s\t\t%d\n", tok[i].identifier, tok[i].tkn);
+     }
+     else 
      fprintf(ofp, "%s\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
 
      printf("Lexeme: %s\n", tok[i].identifier);
