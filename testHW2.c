@@ -446,7 +446,7 @@ void printSymbolicRepresentation(FILE *ofp) {
             fprintf(ofp, "%s ", tok[i].identifier); 
   }
 }
-int main() {
+void lexicalAnalyzer() {
     FILE *ifp, *ofp; 
     char temp; 
     ifp = fopen("input.txt", "r");
@@ -555,6 +555,4 @@ int main() {
     printLexemeList(ofp);
     printSymbolicRepresentation(ofp); 
     checkProgramPeriod(ifp, ofp); 
-
-    return 0;
 } //End of Main
