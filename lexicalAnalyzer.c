@@ -176,18 +176,34 @@ void convertAlphaReserved() {
           int readtemp = strcmp(tok[i].identifier,"read");
           int writetemp = strcmp(tok[i].identifier,"write");
           int oddtemp = strcmp(tok[i].identifier,"odd");
+          int multtemp = strcmp(tok[i].identifier, "mult"); 
 
         if(constemp == 0) {
             strcpy(tok[i].reservedW, "constsym"); 
             strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = constsym;
+            
+            int strcondition = 1;
+            while(strcondition != 0) {
+                i++;
+                int tempSize = strlen(tok[i].identifier);
+                char *tempString = malloc(sizeof(char)*tempSize); 
+                strcpy(tempString, tok[i].identifier);
+                char tmptoken = tempString[0];
+
+                if(isalpha(tmptoken)) {
+                   strcpy(tok[i].reservedW, "identsym");
+                   tok[i].tkn = identsym;
+                }
+                strcondition = strcmp(tok[i].identifier, ";");
+            }
           }
         if(vartemp == 0) {
             strcpy(tok[i].reservedW, "varsym"); 
             strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = varsym;
-            int strcondition = 1;
             
+            int strcondition = 1;
             while(strcondition != 0) {
                 i++;
                 int tempSize = strlen(tok[i].identifier);
@@ -262,8 +278,13 @@ void convertAlphaReserved() {
             strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = oddsym;
           }
-        }
-      }
+        if(multtemp == 0) {
+            strcpy(tok[i].reservedW, "multsym"); 
+            strcpy(tok[i].symType, reservedWords[j]); 
+            tok[i].tkn = multsym; 
+         }
+       }
+     }
     }
     for(int i = 0; i < globalCounter; i++) {
      for(int k = 0; k < globalCounter; k++) {
@@ -356,6 +377,27 @@ void convertAlphaReserved() {
           }  
        }
      }
+void printTable(FILE *ofp) {
+     fprintf(ofp, "\nLexeme Table:\nlexeme\t\ttoken type\n"); 
+     for(int i = 0; i < globalCounter; i++) {
+     int tempsize = strlen(tok[i].identifier); 
+    if((tempsize >= 2) && (tempsize <= 3)) {
+        fprintf(ofp, "%s\t\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
+     }
+     else if((tempsize >= 4) && (tempsize <= 6)) {
+         fprintf(ofp, "%s\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
+     }
+     else if((tempsize >= 7) && (tempsize <= 9)) {
+         fprintf(ofp, "%s\t\t%d\n", tok[i].identifier, tok[i].tkn);
+     }
+     else if((tempsize >= 10)) {
+        fprintf(ofp, "%s %d\n", tok[i].identifier, tok[i].tkn);
+     }
+     else 
+         fprintf(ofp, "%s\t\t\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
+   }
+
+}
 int main() {
     FILE *ifp, *ofp; 
     char temp; 
@@ -368,8 +410,6 @@ int main() {
 
    //Part II 
    checkProgramPeriod(ifp); 
-   fprintf(ofp, "\nLexeme Table:\nlexeme\ttoken type\n"); 
-
    int counter = 0; 
    char wordTemp[MAX_CHARACTER_LENGTH] = {0};
 
@@ -464,19 +504,17 @@ int main() {
     convertAlphaReserved();
     convertDigitReserved(); 
     convertSymbolReserved(); 
+    printTable(ofp); 
 
-   for(int i = 0; i < globalCounter; i++) {
-     int tempsize = strlen(tok[i].identifier); 
-     if(tempsize >= 5) {
-     fprintf(ofp, "%s\t\t%d\n", tok[i].identifier, tok[i].tkn);
-     }
-     else 
-     fprintf(ofp, "%s\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
-
-     printf("Lexeme: %s\n", tok[i].identifier);
-     printf("Token Type: %d\n", tok[i].tkn);
-     printf("Reserved Word Sym: %s\n\n", tok[i].reservedW);
-   }
-
+    //Part III 
+    fprintf(ofp, "\nLexeme List\n"); 
+    int i; 
+    for(i = 0; i < globalCounter; i++) {
+        fprintf(ofp, "%d ", tok[i].tkn); 
+        if(tok[i].tkn == 2)
+            fprintf(ofp, "%s ", tok[i].identifier);
+        if(tok[i].tkn == 3) 
+            fprintf(ofp, "%s ", tok[i].identifier); 
+    }
     return 0;
 } //End of Main

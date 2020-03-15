@@ -378,22 +378,23 @@ void convertAlphaReserved() {
        }
      }
 void printTable(FILE *ofp) {
+     fprintf(ofp, "\nLexeme Table:\nlexeme\t\ttoken type\n"); 
      for(int i = 0; i < globalCounter; i++) {
      int tempsize = strlen(tok[i].identifier); 
     if((tempsize >= 2) && (tempsize <= 3)) {
-        fprintf(ofp, "%s\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
+        fprintf(ofp, "%s\t\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
      }
      else if((tempsize >= 4) && (tempsize <= 6)) {
-         fprintf(ofp, "%s\t\t%d\n", tok[i].identifier, tok[i].tkn);
+         fprintf(ofp, "%s\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
      }
      else if((tempsize >= 7) && (tempsize <= 9)) {
-         fprintf(ofp, "%s\t%d\n", tok[i].identifier, tok[i].tkn);
+         fprintf(ofp, "%s\t\t%d\n", tok[i].identifier, tok[i].tkn);
      }
      else if((tempsize >= 10)) {
         fprintf(ofp, "%s %d\n", tok[i].identifier, tok[i].tkn);
      }
      else 
-         fprintf(ofp, "%s\t\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
+         fprintf(ofp, "%s\t\t\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
    }
 
 }
@@ -409,8 +410,6 @@ int main() {
 
    //Part II 
    checkProgramPeriod(ifp); 
-   fprintf(ofp, "\nLexeme Table:\nlexeme\ttoken type\n"); 
-
    int counter = 0; 
    char wordTemp[MAX_CHARACTER_LENGTH] = {0};
 
