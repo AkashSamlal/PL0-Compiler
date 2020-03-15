@@ -396,7 +396,17 @@ void printTable(FILE *ofp) {
      else 
          fprintf(ofp, "%s\t\t\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
    }
-
+}
+void printLexemeList(FILE *ofp) {
+   fprintf(ofp, "Lexeme List\n"); 
+    int i; 
+    for(i = 0; i < globalCounter; i++) {
+        fprintf(ofp, "%d ", tok[i].tkn); 
+        if(tok[i].tkn == 2)
+            fprintf(ofp, "%s ", tok[i].identifier);
+        if(tok[i].tkn == 3) 
+            fprintf(ofp, "%s ", tok[i].identifier); 
+    }
 }
 int main() {
     FILE *ifp, *ofp; 
@@ -405,8 +415,7 @@ int main() {
     ofp = fopen("output.txt", "w"); 
 
    //Part I  
-   checkProgram(ifp);
-   printProgram(ifp, ofp); 
+   checkProgram(ifp); 
 
    //Part II 
    checkProgramPeriod(ifp); 
@@ -503,18 +512,10 @@ int main() {
 
     convertAlphaReserved();
     convertDigitReserved(); 
-    convertSymbolReserved(); 
-    printTable(ofp); 
+    convertSymbolReserved();  
 
     //Part III 
-    fprintf(ofp, "\nLexeme List\n"); 
-    int i; 
-    for(i = 0; i < globalCounter; i++) {
-        fprintf(ofp, "%d ", tok[i].tkn); 
-        if(tok[i].tkn == 2)
-            fprintf(ofp, "%s ", tok[i].identifier);
-        if(tok[i].tkn == 3) 
-            fprintf(ofp, "%s ", tok[i].identifier); 
-    }
+    printLexemeList(ofp);
+
     return 0;
 } //End of Main
