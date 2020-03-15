@@ -44,21 +44,21 @@ void printProgram(FILE *ifp, FILE *ofp) {
     }
     fseek(ifp, 0, SEEK_SET);
 }
-void checkProgramPeriod(FILE *ifp) {
+void checkProgramPeriod(FILE *ifp, FILE *ofp) {
+  fseek(ifp, 0, SEEK_SET);
    char temp;
    temp = fgetc(ifp); 
    while(temp != EOF) { 
         if(temp == '.') {
-            printf("Code is runnable\n"); 
+            fprintf(ofp, "\n\nNo errors, program is syntactically correct\n"); 
             break;
         }
         else 
             temp = fgetc(ifp);
    }
    if(temp != '.')
-        printf("Does not compile, missing .\n");
+        fprintf(ofp, "\n\n  *****Error number xxx, period expected\n");
     
-     fseek(ifp, 0, SEEK_SET);
 }
  char printSymbols(char temp, FILE *ifp) {
       if(temp == '+') {
@@ -122,16 +122,32 @@ void checkProgramPeriod(FILE *ifp) {
       else if(temp == '<') {
         char *tmp = calloc(2, sizeof(char)); 
         tmp[0] = '<';
-        strcpy(tok[globalCounter].identifier, tmp);
-        globalCounter++; 
-        free(tmp);
+        temp = fgetc(ifp);
+        if(temp == '=') {
+          tmp[1] = '=';
+          strcpy(tok[globalCounter].identifier, tmp);
+         globalCounter++; 
+          free(tmp);
+        }else {
+          strcpy(tok[globalCounter].identifier, tmp);
+          globalCounter++; 
+          free(tmp);
+        }        
       }
       else if(temp == '>') {
         char *tmp = calloc(2, sizeof(char)); 
         tmp[0] = '>';
-        strcpy(tok[globalCounter].identifier, tmp);
-        globalCounter++; 
-        free(tmp);
+        temp = fgetc(ifp);
+        if(temp == '=') {
+          tmp[1] = '=';
+          strcpy(tok[globalCounter].identifier, tmp);
+         globalCounter++; 
+          free(tmp);
+        }else {
+          strcpy(tok[globalCounter].identifier, tmp);
+          globalCounter++; 
+          free(tmp);
+        }        
       }
       else if(temp == ';') {
         char *tmp = calloc(2, sizeof(char)); 
@@ -148,7 +164,6 @@ void checkProgramPeriod(FILE *ifp) {
         free(tmp);
       }
       else {
-        //printf("Error!\n");
       }
       temp = fgetc(ifp); 
       return temp; 
@@ -355,20 +370,32 @@ void convertAlphaReserved() {
             tok[i].tkn = periodsym;
           }
          else if(tempchar[0] == '<') {
+           if(tempchar[1] == '=') {
+            strcpy(tok[i].reservedW, "leqsym"); 
+            tok[i].tkn = leqsym;
+           }
+           else{
             strcpy(tok[i].reservedW, "lessym"); 
             tok[i].tkn = lessym;
+           }
           }
-         else if(tempchar[0] == '>') {
+        else if(tempchar[0] == '>') {
+          if(tempchar[1] == '=') {
+            strcpy(tok[i].reservedW, "geqsym"); 
+            tok[i].tkn = geqsym;
+           }
+           else{
             strcpy(tok[i].reservedW, "gtrsym"); 
             tok[i].tkn = gtrsym;
-          }
+           }
+        }
         else if(tempchar[0] == ';') {
-            strcpy(tok[i].reservedW, "semicolonsym"); 
+            strcpy(tok[i].reservedW, "semicolon"); 
             tok[i].tkn = semicolonsym;
           }   
          else if(tempchar[0] == ':') {
              if(tempchar[1] == '=') {
-            strcpy(tok[i].reservedW, "becomesym"); 
+            strcpy(tok[i].reservedW, "becomessym"); 
             tok[i].tkn = becomessym;
              }
           }
@@ -408,6 +435,17 @@ void printLexemeList(FILE *ofp) {
             fprintf(ofp, "%s ", tok[i].identifier); 
     }
 }
+void printSymbolicRepresentation(FILE *ofp) {
+  int i; 
+  fprintf(ofp, "\n\n"); 
+  for(i = 0; i< globalCounter; i++) {
+    fprintf(ofp, "%s ", tok[i].reservedW); 
+        if(tok[i].tkn == 2)
+            fprintf(ofp, "%s ", tok[i].identifier);
+        if(tok[i].tkn == 3) 
+            fprintf(ofp, "%s ", tok[i].identifier); 
+  }
+}
 int main() {
     FILE *ifp, *ofp; 
     char temp; 
@@ -418,7 +456,6 @@ int main() {
    checkProgram(ifp); 
 
    //Part II 
-   checkProgramPeriod(ifp); 
    int counter = 0; 
    char wordTemp[MAX_CHARACTER_LENGTH] = {0};
 
@@ -516,6 +553,8 @@ int main() {
 
     //Part III 
     printLexemeList(ofp);
+    printSymbolicRepresentation(ofp); 
+    checkProgramPeriod(ifp, ofp); 
 
     return 0;
 } //End of Main
