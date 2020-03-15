@@ -293,80 +293,69 @@ void convertAlphaReserved() {
       int condition = 0;
 
     for(i = 0; i < globalCounter; i++) {
-        for(j = 0; j < 13; j++) {
-          condition = strcmp(tok[i].identifier, specialSymbols[j]); 
-        
-      if(condition == 0) {
-          int addtemp = strcmp(tok[i].identifier,"+");
-          int subtemp = strcmp(tok[i].identifier,"-");
-          int multtemp = strcmp(tok[i].identifier,"*");
-          int divtemp = strcmp(tok[i].identifier,"/");
-          int leftptemp = strcmp(tok[i].identifier,"(");
-          int rightptemp = strcmp(tok[i].identifier,")");
-          int equaltemp = strcmp(tok[i].identifier,"=");
-          int commatemp = strcmp(tok[i].identifier,",");
-          int periodtemp = strcmp(tok[i].identifier,".");
-          int lessthantemp = strcmp(tok[i].identifier,"<");
-          int rightthantemp = strcmp(tok[i].identifier,">");
-          int semicolontemp = strcmp(tok[i].identifier,";");
-          int colontemp = strcmp(tok[i].identifier,":=");
+         int templen = strlen(tok[i].identifier);
+         char * tempchar = calloc(templen, sizeof(char)); 
+         strcpy(tempchar, tok[i].identifier);
 
-          if(addtemp == 0) {
+          if(tempchar[0] == '+') {
             strcpy(tok[i].reservedW, "plussym"); 
             tok[i].tkn = plussym;
           }
-          if(subtemp == 0) {
+         else if(tempchar[0] == '-') {
             strcpy(tok[i].reservedW, "minussym"); 
             tok[i].tkn = minussym;
           }
-          if(multtemp == 0) {
+        else if(tempchar[0] == '*') {
             strcpy(tok[i].reservedW, "multsym"); 
             tok[i].tkn = multsym;
           }
-          if(divtemp == 0) {
-            strcpy(tok[i].reservedW, "plussym"); 
+         else if(tempchar[0] == '/') {
+            strcpy(tok[i].reservedW, "slashsym"); 
             tok[i].tkn = slashsym;
           } 
-          if(leftptemp == 0) {
-            strcpy(tok[i].reservedW, "plussym"); 
+         else if(tempchar[0] == '(') {
+            strcpy(tok[i].reservedW, "lparentsym"); 
             tok[i].tkn = lparentsym;
           }
-          if(rightptemp == 0) {
-            strcpy(tok[i].reservedW, "plussym"); 
+         else if(tempchar[0] == ')') {
+            strcpy(tok[i].reservedW, "rparentsym"); 
             tok[i].tkn = rparentsym;
           }   
-          if(equaltemp == 0) {
-            strcpy(tok[i].reservedW, "plussym"); 
+        else if(tempchar[0] == '=') {
+            strcpy(tok[i].reservedW, "eqlsym"); 
             tok[i].tkn = eqlsym;
           }
-          if(commatemp == 0) {
-            strcpy(tok[i].reservedW, "plussym"); 
+        else if(tempchar[0] == ',') {
+            strcpy(tok[i].reservedW, "commasym"); 
             tok[i].tkn = commasym;
           }
-          if(periodtemp == 0) {
-            strcpy(tok[i].reservedW, "plussym"); 
+        else if(tempchar[0] == '.') {
+            strcpy(tok[i].reservedW, "periodsym"); 
             tok[i].tkn = periodsym;
           }
-          if(lessthantemp == 0) {
-            strcpy(tok[i].reservedW, "plussym"); 
+         else if(tempchar[0] == '<') {
+            strcpy(tok[i].reservedW, "lessym"); 
             tok[i].tkn = lessym;
           }
-          if(rightthantemp == 0) {
-            strcpy(tok[i].reservedW, "plussym"); 
+         else if(tempchar[0] == '>') {
+            strcpy(tok[i].reservedW, "gtrsym"); 
             tok[i].tkn = gtrsym;
           }
-          if(semicolontemp == 0) {
-            strcpy(tok[i].reservedW, "plussym"); 
+        else if(tempchar[0] == ';') {
+            strcpy(tok[i].reservedW, "semicolonsym"); 
             tok[i].tkn = semicolonsym;
           }   
-          if(colontemp == 0) {
+         else if(tempchar[0] == ':') {
+             if(tempchar[1] == '=') {
             strcpy(tok[i].reservedW, "becomesym"); 
             tok[i].tkn = becomessym;
-          }      
+             }
+          }
+          else{
+
+          }  
        }
      }
-   }
- }
 int main() {
     FILE *ifp, *ofp; 
     char temp; 
