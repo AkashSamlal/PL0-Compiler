@@ -1,7 +1,7 @@
 #include <stdio.h> 
-#include <stdlib.h> 
+#include "testData.h"
 
 int main() {
-    
+    lex(); 
     return 0; 
 }

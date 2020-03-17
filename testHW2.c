@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h> 
 #include <ctype.h>
+#include "testData.h"
+
 #define MAX_CHARACTER_LENGTH 11
 #define MAX 100
 
@@ -446,7 +448,7 @@ void printSymbolicRepresentation(FILE *ofp) {
             fprintf(ofp, "%s ", tok[i].identifier); 
   }
 }
-void lexicalAnalyzer() {
+void lex(void) {
     FILE *ifp, *ofp; 
     char temp; 
     ifp = fopen("input.txt", "r");
@@ -555,4 +557,7 @@ void lexicalAnalyzer() {
     printLexemeList(ofp);
     printSymbolicRepresentation(ofp); 
     checkProgramPeriod(ifp, ofp); 
+    
+    fclose(ifp);
+    fclose(ofp); 
 } //End of Main
