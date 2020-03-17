@@ -1,0 +1,6 @@
+Lexeme List
+29 2 x 17 2 y 18 21 2 x 20 2 y 4 3 56 18 22 19 
+
+varsym identsym x commasym identsym y semicolon beginsym identsym x becomessym identsym y plussym numbersym 56 semicolon endsym periodsym 
+
+No errors, program is syntactically correct

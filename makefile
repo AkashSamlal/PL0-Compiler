@@ -1,10 +1,8 @@
-testData: compilerDriver.o testHW2.o testData.o
-    gcc -o testData compilerDriver.o testHW2.o testData.o
+CC=gcc
+TARGET=compile
 
-compilerDriver.o: compilerDriver.c testData.h 
-    gcc -c compilerDriver.c 
+compile:	main.o	testHW2.o
+	$(CC)	main.c	testHW2.c	-o	$(TARGET)
 
-testHW2.o: testHW2.c testData.h 
-    gcc -c testHW2.c 
-    
-
+clean:
+	rm	*.o	$(TARGET)
