@@ -1,3 +1,7 @@
+typedef struct {
+
+} instruction; 
+
 void checkProgram(FILE *ifp);
 void checkProgramPeriod(FILE *ifp, FILE *ofp);
 char printSymbols(char temp, FILE *ifp);
