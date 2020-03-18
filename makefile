@@ -6,3 +6,7 @@ compile:	main.o	testHW2.o
 
 clean:
 	rm	*.o	$(TARGET)
+	#Compile
+    #1  Run 'make'
+    #2  Run './compile' view    output  txt file
+    #3  Finish? Run 'make   clean'
