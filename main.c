@@ -3,5 +3,6 @@
 
 int main() {
     lex(); 
+    //parser();
     return 0; 
 }

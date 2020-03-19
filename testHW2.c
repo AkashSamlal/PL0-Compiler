@@ -4,27 +4,6 @@
 #include <ctype.h>
 #include "testData.h"
 
-#define MAX_CHARACTER_LENGTH 11
-#define MAX 100
-
-//token value, eg: var -> tok[globalCounter].tkn = varsym
-typedef enum { 
-nulsym = 1, identsym, numbersym, plussym, minussym,
-multsym,  slashsym, oddsym, eqlsym, neqsym, lessym, leqsym,
-gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
-periodsym, becomessym, beginsym, endsym, ifsym, thensym, 
-whilesym, dosym, callsym, constsym, varsym, procsym, writesym,
-readsym , elsesym = 33
-} token_type;
-
-typedef struct {
-    char identifier[MAX_CHARACTER_LENGTH]; //Store lexeme string
-    char symType[MAX_CHARACTER_LENGTH]; //Store Sym String
-    char reservedW[MAX_CHARACTER_LENGTH];//Store reserved Words
-    token_type tkn; //token value
-}token;
-
-token tok[MAX];
 int globalCounter = 0;          //0         1       2           3       4       5       6       7       8       9      10   11      12      13
 const char * reservedWords[] = { "const", "var", "procedure", "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write", "odd"};
                                 //0     1    2    3    4    5   6     7   8     9   10  11  12
@@ -197,7 +176,6 @@ void convertAlphaReserved() {
 
         if(constemp == 0) {
             strcpy(tok[i].reservedW, "constsym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = constsym;
             
             int strcondition = 1;
@@ -217,7 +195,6 @@ void convertAlphaReserved() {
           }
         if(vartemp == 0) {
             strcpy(tok[i].reservedW, "varsym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = varsym;
             
             int strcondition = 1;
@@ -237,67 +214,54 @@ void convertAlphaReserved() {
           }
         if(proceduretemp == 0) {
             strcpy(tok[i].reservedW, "procsym");
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = procsym;
           }
         if(calltemp == 0) {
             strcpy(tok[i].reservedW, "callsym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = callsym;
           }
         if(begintemp == 0) {
             strcpy(tok[i].reservedW, "beginsym");
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = beginsym; 
           }
         if(endtemp == 0) {
             strcpy(tok[i].reservedW, "endsym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = endsym;
           }
         if(iftemp == 0) {
             strcpy(tok[i].reservedW, "ifsym");
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = ifsym; 
           }
         if(thentemp == 0) {
             strcpy(tok[i].reservedW, "thensym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = thensym;
           }
         if(elsetemp == 0) {
             strcpy(tok[i].reservedW, "elsesym");
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = elsesym;
           }
         if(whiletemp == 0) {
             strcpy(tok[i].reservedW, "whilesym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = whilesym;
           }
         if(dotemp == 0) {
             strcpy(tok[i].reservedW, "dosym");
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = dosym;
           }
         if(readtemp == 0) {
             strcpy(tok[i].reservedW, "readsym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = readsym;
           }
         if(writetemp == 0) {
             strcpy(tok[i].reservedW, "writesym");
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = writesym;
           }
         if(oddtemp == 0) {
             strcpy(tok[i].reservedW, "oddsym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
             tok[i].tkn = oddsym;
           }
         if(multtemp == 0) {
             strcpy(tok[i].reservedW, "multsym"); 
-            strcpy(tok[i].symType, reservedWords[j]); 
             tok[i].tkn = multsym; 
          }
        }
@@ -452,7 +416,7 @@ void lex(void) {
     FILE *ifp, *ofp; 
     char temp; 
     ifp = fopen("input.txt", "r");
-    ofp = fopen("output.txt", "w"); 
+    ofp = fopen("lexOutput.txt", "w"); 
 
    //Part I  
    checkProgram(ifp); 

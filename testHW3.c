@@ -157,19 +157,29 @@ void block() {
     statement();
 }
 
-void program() {
-    get(token);
+void program(FILE *ifp) {
+token = fgetc(ifp); 
     block(); 
     if(token != "periodsym") {
         error();
     }
 }
-int main() {
+void printParser(FILE *ofp) {
+    int i, size = 0;
+    for(i = 0; i< size; i++) {
+        fprintf(ofp, "%d %d %d\n", code[i].op, code[i].l, code[i].m); 
+    }
+}
+void parser(void) {
     FILE *ifp, *ofp; 
 
-    ifp = fopen("lexoutput.txt", "r");
+    ifp = fopen("lexOutput.txt", "r");
     ofp = fopen("parserOutput.txt", "w"); 
 
     program(ifp); 
-    return 0;
+
+    printParser(ofp);
+    
+    fclose(ifp);
+    fclose(ofp);
 }
