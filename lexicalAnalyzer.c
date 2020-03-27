@@ -429,7 +429,7 @@ void printLexeme(FILE *ofp) {
         
     }
 }
-void lexical(){
+void lexical(int lexFlag){
     FILE* ifp; //input file
     FILE* ofp; //output file 
 
@@ -446,8 +446,22 @@ void lexical(){
 
     //part 3
     printLexeme(ofp); //Print the Lexeme List 
- 
-    //close input and output file
+    //Close input and output file
     fclose(ifp);
     fclose(ofp);
+
+    if(lexFlag) {
+        char temp; 
+        ofp = fopen("lexicalAnalyzerOutput.txt", "r");
+        fseek(ofp, 0, SEEK_SET);
+        printf("Lexeme List:\n");
+        temp = fgetc(ofp);
+        while(temp != EOF) {
+             printf("%c", temp); 
+             temp = fgetc(ofp);
+        }
+        printf("\n\n");
+        fclose(ofp);
+    }
+    
 }

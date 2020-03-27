@@ -326,7 +326,7 @@ void printExecution(int temp, char **line, int index) {
    fprintf(ofp, "\n\n");
 }
 //Main Function
-void VM() {
+void VM(int lexFlag, int parseFlag, int vmFlag) {
     //Use for "for-loop"
     int i;
     char ** line; //String for storing current Operand
@@ -379,11 +379,51 @@ void VM() {
         if(HALTFLAG == 1)
             printExecution(temp, line, index);
        }
+
     //Free Dynamic1ally Allocated String Array
     free(line);
     //Close Input File
     fclose(ifp);
     //Close Output File
     fclose(ofp);
+
+    if(vmFlag) {
+      char temp; 
+      ofp = fopen("VMOutput.txt", "r");
+      fseek(ofp, 0, SEEK_SET);
+      printf("Virtual Machine:\n");
+      temp = fgetc(ofp);
+      while(temp != EOF) {
+         printf("%c", temp); 
+         temp = fgetc(ofp);
+        }
+        printf("\n\n");
+        fclose(ofp);
+    }
+
+    if((lexFlag == 0) && (parseFlag == 0) && (vmFlag == 0)) {
+        ifp = fopen("input.txt", "r"); 
+        ofp = fopen("VMOutput.txt", "r"); 
+        char temp; 
+        fseek(ifp, 0, SEEK_SET);
+        printf("Input File:\n"); 
+        temp = fgetc(ifp);
+        while(temp != EOF) {
+             printf("%c", temp); 
+             temp = fgetc(ifp);
+        }
+        printf("\n\n");
+
+        fseek(ofp, 0, SEEK_SET);
+        printf("Output File:\n"); 
+        temp = fgetc(ofp);
+        while(temp != EOF) {
+             printf("%c", temp); 
+             temp = fgetc(ofp);
+        }
+        printf("\n\n");
+        fclose(ifp); 
+        fclose(ofp);
+    }
     exit(EXIT_SUCCESS); //Exit gracefully
 }

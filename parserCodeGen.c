@@ -41,6 +41,7 @@ token tok;
 FILE *ifp;
 int indexTrack = 0, rp, sp = 1, curlvl = 1, lvl = 1, counter = 0;
 
+void expression(); 
 //Function for errors
 void error(int errorCode){
   printf("Error: ");
@@ -508,12 +509,12 @@ void program(){
 void printParser(FILE *ofp) {
   int i;
   for(i = 0; i < indexTrack; i++) {
-      printf("%d %d %d %d\n", cd[i].OP, cd[i].R, cd[i].L, cd[i].M);
+      //printf("%d %d %d %d\n", cd[i].OP, cd[i].R, cd[i].L, cd[i].M);
     fprintf(ofp, "%d %d %d %d\n", cd[i].OP, cd[i].R, cd[i].L, cd[i].M);
   }
 }
 //Main Function to Run the Parser
-void parser(){
+void parser(int parseFlag){
     FILE *ofp;
     ifp = fopen("lexicalAnalyzerOutput.txt", "r");
     ofp = fopen("parserOutput.txt", "w");
@@ -521,4 +522,18 @@ void parser(){
     printParser(ofp); 
     fclose(ifp);
     fclose(ofp);
+
+    if(parseFlag) {
+        char temp; 
+        ofp = fopen("parserOutput.txt", "r");
+        fseek(ofp, 0, SEEK_SET);
+        printf("Parser & Code Generation:\n"); 
+        temp = fgetc(ofp);
+        while(temp != EOF) {
+             printf("%c", temp); 
+             temp = fgetc(ofp);
+        }
+        printf("\n\n");
+        fclose(ofp);
+    }
 }
