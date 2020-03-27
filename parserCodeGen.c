@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "header.h"
 #define MAXTABLE 200
 #define MAXCODE 500
 #define MAXID 12
@@ -512,7 +513,7 @@ void printParser(FILE *ofp) {
   }
 }
 //Main Function to Run the Parser
-int main(){
+void parser(){
     FILE *ofp;
     ifp = fopen("lexicalAnalyzerOutput.txt", "r");
     ofp = fopen("parserOutput.txt", "w");
@@ -520,5 +521,4 @@ int main(){
     printParser(ofp); 
     fclose(ifp);
     fclose(ofp);
-    return 0;
 }

@@ -1,8 +1,8 @@
 CC=gcc
 TARGET=compile
 
-compile:	main.o	testHW2.o
-	$(CC)	main.c	testHW2.c	-o	$(TARGET)
+compile:	compilerDriver.o	lexicalAnalyzer.o	parserCodeGen.o	VM.o
+	$(CC)	compilerDriver.c	lexicalAnalyzer.c	parserCodeGen.c	VM.c	-o	$(TARGET)
 
 clean:
 	rm	*.o	$(TARGET)

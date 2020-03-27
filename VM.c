@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "header.h"
 #define MAX_STACK_HEIGHT 40
 #define MAX_CODE_LENGTH 200
 #define MAX_LEX_LEVELS 3
@@ -325,7 +326,7 @@ void printExecution(int temp, char **line, int index) {
    fprintf(ofp, "\n\n");
 }
 //Main Function
-int main() {
+void VM() {
     //Use for "for-loop"
     int i;
     char ** line; //String for storing current Operand
@@ -385,5 +386,4 @@ int main() {
     //Close Output File
     fclose(ofp);
     exit(EXIT_SUCCESS); //Exit gracefully
-    return 0;
 }

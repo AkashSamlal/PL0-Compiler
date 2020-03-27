@@ -6,6 +6,7 @@
 #include <string.h>
 #include <math.h> 
 #include <ctype.h>
+#include "header.h"
 #define MAX_CHARACTER_LENGTH  11 //Maximum character length for identifiers
 #define MAX_NUMBER_LENGTH   5 //Maximum digit length for identifier
 #define SPECIAL_SYMBOL_LENGTH 13
@@ -428,8 +429,7 @@ void printLexeme(FILE *ofp) {
         
     }
 }
-//Main Function 
-int main(){
+void lexical(){
     FILE* ifp; //input file
     FILE* ofp; //output file 
 
@@ -450,7 +450,4 @@ int main(){
     //close input and output file
     fclose(ifp);
     fclose(ofp);
-
-    //Executes successfully
-    return 0;
 }
