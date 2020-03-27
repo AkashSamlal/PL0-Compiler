@@ -38,7 +38,7 @@ token tok;
 
 //Global Variables to Keep track of
 FILE *ifp;
-int index = 0, rp, sp = 1, curlvl = 1, lvl = 1, counter = 0;
+int indexTrack = 0, rp, sp = 1, curlvl = 1, lvl = 1, counter = 0;
 
 //Function for errors
 void error(int errorCode){
@@ -127,11 +127,11 @@ void addsymTable(int kind, char name[], int value, int address){
 //Function to fill in each Code for the parserOutput.txt
 void emit(int OP, int R, int L, int M){
   //Fill in the current index with the operand, register, lex level, and M
-    cd[index].OP = OP;
-    cd[index].R = R;
-    cd[index].L = L;
-    cd[index].M = M;
-    index++;
+    cd[indexTrack].OP = OP;
+    cd[indexTrack].R = R;
+    cd[indexTrack].L = L;
+    cd[indexTrack].M = M;
+    indexTrack++;
 }
 //Function to scan each token from the lexicalAnalyzerOutput.txt
 void getToken(){
@@ -342,38 +342,38 @@ void statement(){
     if(strcmp(tok.tkn, "24") != 0) 
         error(16);
     getToken();
-    in1 = index;
+    in1 = indexTrack;
     emit(8, rp - 1, 0, 0);
     statement();
     getToken();
     //Search for else statement 
     if(strcmp( tok.tkn, "33") == 0){
-        int in2 = index;
+        int in2 = indexTrack;
         emit(7, 0, 0, 0);//Jump
-        cd[in1].M= index;
+        cd[in1].M= indexTrack;
         getToken();
         statement();
-        cd[in2].M = index;
+        cd[in2].M = indexTrack;
         rp--;
     }
     else{
-        cd[in1].M = index;
+        cd[in1].M = indexTrack;
         rp--;
     }
   }
   //Search for While statement
   else if(strcmp(tok.tkn, "25") == 0){
-    int fI = index;
+    int fI = indexTrack;
     getToken();
     condition();
-    int fS = index;
+    int fS = indexTrack;
     emit(8, rp - 1, 0, 0);
     if(strcmp(tok.tkn, "26") != 0) 
         error(18);
     getToken();
     statement();
     emit(7, 0, 0, fI); //Jump
-    cd[fS].M = index;
+    cd[fS].M = indexTrack;
     rp--;
   }
   //Search for Readsym
@@ -424,7 +424,7 @@ void statement(){
   }
 }
 //Helper Function for Defining Constants 
-void constantDecl(char * name, int space, int val) {
+void constantDecl(char * name, int val) {
       if(strcmp(tok.tkn, "2") != 0) 
         error(4);
       strcpy(name, tok.value);
@@ -454,7 +454,7 @@ void varDecl(char *name, int space) {
 void block(){
   char tmp[12];
   int v, jmp, gp = 4;
-  jmp = index;
+  jmp = indexTrack;
   sp = 3; 
   emit(7, 0, 0, 0);
   do {
@@ -463,10 +463,10 @@ void block(){
     if(strcmp(tok.tkn, "28") == 0) {
       getToken();
       do{
-        constantDecl(tmp, gp, v); 
+        constantDecl(tmp, v); 
         while(strcmp(tok.tkn, "17") == 0) {
             getToken();
-            constantDecl(tmp, gp, v);
+            constantDecl(tmp, v);
         }
         if(strcmp(tok.tkn, "18") != 0) //semicolon
              error(5);
@@ -491,7 +491,7 @@ void block(){
     //-----------------------------------------------
   }while((strcmp(tok.tkn, "28") == 0) || (strcmp(tok.tkn, "29") == 0));
 
-  cd[jmp].M = index;
+  cd[jmp].M = indexTrack;
   emit(6, 0, 0, gp); //Increment 
   statement();
   curlvl--;
@@ -506,7 +506,7 @@ void program(){
 //Print Parser Output
 void printParser(FILE *ofp) {
   int i;
-  for(i = 0; i < index; i++) {
+  for(i = 0; i < indexTrack; i++) {
       printf("%d %d %d %d\n", cd[i].OP, cd[i].R, cd[i].L, cd[i].M);
     fprintf(ofp, "%d %d %d %d\n", cd[i].OP, cd[i].R, cd[i].L, cd[i].M);
   }
