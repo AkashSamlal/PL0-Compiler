@@ -1,20 +1,22 @@
 //Akash Samlal
 //HW 1 PM/0 Virtual Machine Assignment
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
 #include "header.h"
 #define MAX_STACK_HEIGHT 40
 #define MAX_CODE_LENGTH 200
 #define MAX_LEX_LEVELS 3
 #define REGISTER_FILE_LENGTH 8
 //Prototype for Instruction Register
-struct instruction {
+struct instruction { 
     int OP;
     int R;
     int L;
     int M;
+    char name[6];
 };
+
 //P-Machine: 2 Memory Stores
 int stack[MAX_STACK_HEIGHT] = {0}; //Contains data to be used by the CPU
 struct instruction text[MAX_CODE_LENGTH]; //Contains the instructions for the VM
@@ -46,7 +48,8 @@ int base(int L, int base) {
 }
 //PM/0 Instruction Cycle - Fetch & Execute Cycle
 void fetch() {  //Fetch Cycle: Retrieves the current instruction and prepare it for the ALU
-  IR = text[PC]; //Instruction is fetched from the "text" array, and store it in the "IR" Register
+  IR = text[PC]; //Instruction is fetched from the "text" array, and store it in the "IR" Register  
+  fprintf(ofp, "%d\t", PC);
   PC++; //Increments Program Counter to point to the next instruction
   return; //Continue to the code
 }
@@ -111,7 +114,7 @@ void execute() { //Execute Cycle: Executes the fetched instruction by the VM
             break;
         //ADD
         case 13:
-            registerFile[IR.R] = registerFile[IR.L] - registerFile[IR.M];
+            registerFile[IR.R] = registerFile[IR.L] + registerFile[IR.M];
             break;
         //SUB
         case 14:
@@ -137,31 +140,43 @@ void execute() { //Execute Cycle: Executes the fetched instruction by the VM
         case 19:
             if(registerFile[IR.L] == registerFile[IR.M])
                 registerFile[IR.R] = 1;
+            else
+                registerFile[IR.R]=0;
             break;
         //NEQ
         case 20:
               if(registerFile[IR.L] != registerFile[IR.M])
                 registerFile[IR.R] = 1;
+              else
+                registerFile[IR.R]=0;  
             break;
         //LSS
         case 21:
              if(registerFile[IR.L] < registerFile[IR.M])
                 registerFile[IR.R] = 1;
+            else
+                registerFile[IR.R]=0;
             break;
         //LEQ
         case 22:
               if(registerFile[IR.L] <= registerFile[IR.M])
                 registerFile[IR.R] = 1;
+              else
+                registerFile[IR.R]=0;  
             break;
         //GTR
         case 23:
               if(registerFile[IR.L] > registerFile[IR.M])
                 registerFile[IR.R] = 1;
+             else
+                registerFile[IR.R]=0;
             break;
         //GEQ
         case 24:
               if(registerFile[IR.L] >= registerFile[IR.M])
                 registerFile[IR.R] = 1;
+              else
+                registerFile[IR.R]=0;
             break;
         //If IR.OP isn't recognized, break from execute
         default:
@@ -169,130 +184,173 @@ void execute() { //Execute Cycle: Executes the fetched instruction by the VM
             break;
     }
    return;
-}
-//Print the Interpreted Assembly Language
-void printAssembly(char ** line, int index) {
-    fprintf(ofp,"Line\tOP\tR\tL\tM\n");
+}   
+    //Print Table
+    void printAssembly(int index){
+        int i;
+        fprintf(ofp, "\nLine\tOP\tR\tL\tM");
+        for(i = 0; i < index; i++){
+            int op = text[i].OP;
+            //Interpret the operation.
+            switch(op){
+            case 1: 
+            strcpy(text[i].name, "lit");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tlit\t"); 
+            break;
 
-    //Print the Line Numbering
-    for(int i = 0; i < index; i++) {
-        fprintf(ofp, "%d\t", i);
+            case 2: 
+            strcpy(text[i].name, "rtn");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\trtn\t"); 
+            break;
 
-    //Print the Operand of each OP
-        switch(text[i].OP) {
-             case 1: //lit
-                strcpy(line[i], "lit");
-                fprintf(ofp, "lit\t");
-                break;
-             case 2: //rtn
-                strcpy(line[i], "rtn");
-                fprintf(ofp, "rtn\t");
-                break;
-             case 3: //lod
-                strcpy(line[i], "lod");
-                fprintf(ofp, "lod\t");
-                break;
-             case 4: //sto
-                strcpy(line[i], "sto");
-                fprintf(ofp, "sto\t");
-                break;
-             case 5: //cal
-                strcpy(line[i], "cal");
-                fprintf(ofp, "cal\t");
-                break;
-             case 6: //inc
-                strcpy(line[i], "inc");
-                fprintf(ofp, "inc\t");
-                break;
-             case 7: //jmp
-                strcpy(line[i], "jmp");
-                fprintf(ofp, "jmp\t");
-                break;
-             case 8: //jpc
-                strcpy(line[i], "jpc");
-                fprintf(ofp, "jpc\t");
-                break;
-             case 9: //sio
-                strcpy(line[i], "sio");
-                fprintf(ofp, "sio\t");
-                break;
-             case 10: //sio
-                strcpy(line[i], "sio");
-                fprintf(ofp, "sio\t");
-                break;
-             case 11: //sio
-                strcpy(line[i], "sio");
-                fprintf(ofp, "sio\t");
-                break;
-             case 12: //neg
-                strcpy(line[i], "neg");
-                fprintf(ofp, "neg\t");
-                break;
-             case 13: //add
-                strcpy(line[i], "add");
-                fprintf(ofp, "add\t");
-                break;
-             case 14: //sub
-                strcpy(line[i], "sub");
-                fprintf(ofp, "sub\t");
-                break;
-             case 15: //mul
-                strcpy(line[i], "mul");
-                fprintf(ofp, "mul\t");
-                break;
-             case 16: //div
-                strcpy(line[i], "div");
-                fprintf(ofp, "div\t");
-                break;
-             case 17: //odd
-                strcpy(line[i], "odd");
-                fprintf(ofp, "odd\t");
-                break;
-             case 18: //mod
-                strcpy(line[i], "mod");
-                fprintf(ofp, "mod\t");
-                break;
-             case 19: //eql
-                strcpy(line[i], "eql");
-                fprintf(ofp, "eql\t");
-                break;
-             case 20: //neq
-                strcpy(line[i], "neq");
-                fprintf(ofp, "neq\t");
-                break;
-             case 21: //lss
-                strcpy(line[i], "lss");
-                fprintf(ofp, "lss\t");
-                break;
-             case 22: //leq
-                strcpy(line[i], "leq");
-                fprintf(ofp, "leq\t");
-                break;
-             case 23: //gtr
-                strcpy(line[i], "gtr");
-                fprintf(ofp, "gtr\t");
-                break;
-             case 24: //geq
-                strcpy(line[i], "geq");
-                fprintf(ofp, "geq\t");
-                break;
-            default: break;
-          }
-        //Print the Register
-        fprintf(ofp, "%d\t", text[i].R);
-       //Print the Lexicographical Level
-        fprintf(ofp, "%d\t", text[i].L);
-        //Print the M Operator
-        fprintf(ofp, "%d\n", text[i].M);
+            case 3: 
+            strcpy(text[i].name, "lod");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tlod\t"); 
+            break;
+
+            case 4:
+            strcpy(text[i].name, "sto");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tsto\t");
+            break;
+
+            case 5: 
+            strcpy(text[i].name, "cal");
+            fprintf(ofp, "\n%d\t", i);
+            fprintf(ofp, "\tcal\t");
+            break;
+
+            case 6: 
+            strcpy(text[i].name, "inc");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tinc\t");
+            break;
+
+            case 7:
+            strcpy(text[i].name, "jmp");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tjmp\t"); 
+            break;
+
+            case 8:
+            strcpy(text[i].name, "jpc");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tjpc\t"); 
+            break;
+
+            case 9: 
+            strcpy(text[i].name, "sio");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tsio\t"); 
+            break;
+
+            case 10:
+            strcpy(text[i].name, "sio");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tsio\t");
+            break;
+
+            case 11:
+            strcpy(text[i].name, "sio");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tsio\t"); 
+            break;
+
+            case 12:
+            strcpy(text[i].name, "neg");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tneg\t"); 
+            break;
+
+            case 13:
+            strcpy(text[i].name, "add");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tadd\t"); 
+            break;
+
+            case 14:
+            strcpy(text[i].name, "sub");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tsub\t"); 
+            break;
+
+            case 15:
+            strcpy(text[i].name, "mul");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tmul\t"); 
+            break;
+
+            case 16:
+            strcpy(text[i].name, "div");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tdiv\t");
+            break;
+
+            case 17:
+            strcpy(text[i].name, "odd");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\todd\t"); 
+            break;
+
+            case 18:
+            strcpy(text[i].name, "mod");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tmod\t"); 
+            break;
+
+            case 19:
+            strcpy(text[i].name, "eql");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\teql\t"); 
+            break;
+
+            case 20:
+            strcpy(text[i].name, "neq");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tneq\t"); 
+            break;
+
+            case 21:
+            strcpy(text[i].name, "lss");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tlss\t"); 
+            break;
+
+            case 22:
+            strcpy(text[i].name, "leq");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tleq\t"); 
+            break;
+
+            case 23:
+            strcpy(text[i].name, "gtr");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tgtr\t"); 
+            break;
+
+            case 24:
+            strcpy(text[i].name, "geq");
+            fprintf(ofp, "\n%d\t", i); 
+            fprintf(ofp, "\tgeq\t"); 
+            break;
+
+            default: 
+                return;
+            }
+            fprintf(ofp, "%d\t", text[i].R);
+            fprintf(ofp, "%d\t", text[i].L);
+            fprintf(ofp, "%d\t", text[i].M);
+        }
+        return;
     }
-    //Print New Line
-     fprintf(ofp, "\n");
-}
 //Print the Exection of the program in Virtual Machine: Depict the stack and registers PC, BP, SP
 void printInitialExecution() {
     int i; //Use for "For-Loop"
     //Print Header
-    fprintf(ofp,"\t\tpc\tbp\tsp\tregisters\n");
+    fprintf(ofp,"\n\n\t\t\t\tpc\tbp\tsp\tregisters\n");
     //Print PC, BP, SP
     fprintf(ofp, "Initial Values\t%d\t%d\t%d\t", PC, BP, SP);
     //Print Register File
@@ -306,14 +364,14 @@ void printInitialExecution() {
     //Print new lines
     fprintf(ofp, "\n\n");
 }
-//Print Contents of the Program during Execution
-void printExecution(int temp, char **line, int index) {
-    int i; //Use for "For-Loop"
+void printExecution(int temp, int index) {
+     int i; //Use for "For-Loop"
     //Print Header
     fprintf(ofp, "\t\tpc\tbp\tsp\tregisters\n");
     //Print Contents of Instruction Register
-    fprintf(ofp, "%d %s %d %d %d", temp, line[index], IR.R, IR.L, IR.M);
+    fprintf(ofp, "%d %s %d %d %d", temp, text[index].name , IR.R, IR.L, IR.M);
     fprintf(ofp, "\t%d\t%d\t%d\t", PC, BP, SP);
+    printf("%d\n", index);
     //Print Register File Contents
     for(i = 0; i < REGISTER_FILE_LENGTH; i++)
         fprintf(ofp, "%d ", registerFile[i]);
@@ -325,69 +383,47 @@ void printExecution(int temp, char **line, int index) {
    //Print new lines
    fprintf(ofp, "\n\n");
 }
-//Main Function
-void VM(int lexFlag, int parseFlag, int vmFlag) {
-    //Use for "for-loop"
-    int i;
-    char ** line; //String for storing current Operand
-    //Open the Input File and Read it
-    ifp = fopen("parserOutput.txt", "r");
-    //Create Output File and Write it
-    ofp = fopen("VMOutput.txt", "w");
-    //If Input File doesn't exist ouput an error
-    if(ifp == NULL) {
-        printf("File couldn't open, please check name of the input text file\n");
-        exit(EXIT_FAILURE);
-    }
-    //Increment initalizer
+
+//Main function -----------------------------------------------------------------------------------
+void VM(int lexFlag, int parseFlag, int vmFlag){
+     ifp =   fopen("parserOutput.txt", "r");
+     ofp =   fopen("VMOutput.txt", "w");
+     //If the file isn't there or could not open properly, end the program.
+     if(ifp == NULL){
+        printf("Input File could not open\n");
+      }
+    //Keep track of number of instructions the input file.
     int index = 0;
-    //Read input file and save in text memory
-    while(!feof(ifp)) {
-        fscanf(ifp, "%d", &text[index].OP); //save operand
-        fscanf(ifp, "%d", &text[index].R); //save register
-        fscanf(ifp, "%d", &text[index].L); //save lexicographical level
-        fscanf(ifp, "%d", &text[index].M); //save M component
+    //Read in the lines from the input file.
+    while(!feof(ifp)) { 
+        fscanf(ifp, "%d", &text[index].OP);
+        fscanf(ifp, "%d", &text[index].R);
+        fscanf(ifp, "%d", &text[index].L);
+        fscanf(ifp, "%d", &text[index].M);
         index++;
     }
-    //Dynamically Allocated an array of strings to save Operands
-    line = malloc(sizeof(char*)*(index));
-    //Error Check if no memory left to allocate
-    if(line == NULL) {
-        printf("Unable to allocate Memory, please restart Machine and try again.\n");
-        exit(EXIT_FAILURE); //exit gracefully
-     }
-    //Dynamically Allocated each string
-    for(i = 0; i < index; i++)
-        line[i] = (char*)malloc(sizeof(char)*3);
-    //Print the Interpreted Assembly Language
-    printAssembly(line, index);
-    //Print the Initial Exection of the program in Virtual Machine: Depict the stack and registers PC, BP, SP
+    printAssembly(index);
     printInitialExecution();
-    //Restart Index to print each execution
     index = 0;
-    //Execute the P-Machine Cycle
-    while(HALTFLAG == 0) {
-        int temp = PC; //stores previous PC
-        fetch(); //fetch instruction
-        execute(); //execute instruction
-        printExecution(temp, line, index); //display output after execution
-        index++; //increment to next operand
-        //Halt program when program ends
-        if(((PC == 0) && (BP == 0)) && (SP == 0))
-            HALTFLAG == 1;
-        //Print after state of program
-        if(HALTFLAG == 1)
-            printExecution(temp, line, index);
-       }
+    //Fetch - Execute Cycle. Runs until the halt flag is set to stop the loop.
+    while(HALTFLAG == 0){
+        int temp = PC; 
+        fetch();
+        execute();
+        printExecution(temp, index);
+        index++;
+        if(((PC==0) && (BP==0) && (SP==0)))
+            HALTFLAG = 1;
 
-    //Free Dynamic1ally Allocated String Array
-    free(line);
-    //Close Input File
+        if(HALTFLAG == 1)
+            printExecution(temp, index);
+    }
+
+    //Close files.
     fclose(ifp);
-    //Close Output File
     fclose(ofp);
 
-    if(vmFlag) {
+ if(vmFlag) {
       char temp; 
       ofp = fopen("VMOutput.txt", "r");
       fseek(ofp, 0, SEEK_SET);
@@ -400,7 +436,6 @@ void VM(int lexFlag, int parseFlag, int vmFlag) {
         printf("\n\n");
         fclose(ofp);
     }
-
     if((lexFlag == 0) && (parseFlag == 0) && (vmFlag == 0)) {
         ifp = fopen("input.txt", "r"); 
         ofp = fopen("VMOutput.txt", "r"); 
@@ -425,5 +460,6 @@ void VM(int lexFlag, int parseFlag, int vmFlag) {
         fclose(ifp); 
         fclose(ofp);
     }
-    exit(EXIT_SUCCESS); //Exit gracefully
-}
+    }//---------------------------------------------------------------------------------------------------
+
+    

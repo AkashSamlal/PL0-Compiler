@@ -42,6 +42,7 @@ FILE *ifp;
 int indexTrack = 0, rp, sp = 1, curlvl = 1, lvl = 1, counter = 0;
 
 void expression(); 
+
 //Function for errors
 void error(int errorCode){
   printf("Error: ");
@@ -115,8 +116,6 @@ void error(int errorCode){
   default:
     printf("Unknown error, please check again");
   }
-  fclose(ifp);
-  exit(0);
 }
 //Function to add grammar to the symbol table
 void addsymTable(int kind, char name[], int value, int address){
@@ -457,7 +456,7 @@ void block(){
   char tmp[12];
   int v, jmp, gp = 4;
   jmp = indexTrack;
-  sp = 3; 
+  sp = 4; 
   emit(7, 0, 0, 0);
   do {
      //Constant Declaration
@@ -516,8 +515,12 @@ void printParser(FILE *ofp) {
 //Main Function to Run the Parser
 void parser(int parseFlag){
     FILE *ofp;
-    ifp = fopen("lexicalAnalyzerOutput.txt", "r");
+    ifp = fopen("lexemeList.txt", "r");
     ofp = fopen("parserOutput.txt", "w");
+    //If the file isn't there or could not open properly, end the program.
+     if(ifp == NULL){
+        printf("Input File could not open\n");
+      }
     program();
     printParser(ofp); 
     fclose(ifp);

@@ -1,7 +1,7 @@
 CC=gcc
 TARGET=compile
-SAVE=$(wildcard	*.txt)
-TEXT=$(patsubst	%.txt,%.txt,	$(SAVE),	$(TARGET))
+SAVE	:=	$(wildcard	*.txt)
+TEXT	:=	$(patsubst	%.txt,%.txt,	$(SAVE),	$(TARGET))
 
 compile:	compilerDriver.o	lexicalAnalyzer.o	parserCodeGen.o	VM.o
 	$(CC)	compilerDriver.c	lexicalAnalyzer.c	parserCodeGen.c	VM.c	-o	$(TARGET)

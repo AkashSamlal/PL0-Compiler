@@ -1,458 +1,548 @@
-    //Akash Samlal
-//COP 3402 - HW 2
-//Standard Libraries for C
+//Akash Samlal - Lexical Analyzer HW2
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <math.h> 
+#include <string.h> 
 #include <ctype.h>
 #include "header.h"
-#define MAX_CHARACTER_LENGTH  11 //Maximum character length for identifiers
-#define MAX_NUMBER_LENGTH   5 //Maximum digit length for identifier
-#define SPECIAL_SYMBOL_LENGTH 13
-#define MAX_SIZE 2000 //Maximum Table Size for Lexeme Table
- 
-//Declaration of Token Types
+#define MAX_CHARACTER_LENGTH 11
+#define MAX 100
+
+//token value, eg: var -> tok[globalCounter].tkn = varsym
 typedef enum { 
 nulsym = 1, identsym, numbersym, plussym, minussym,
-multsym,  slashsym, oddsym, eqsym, neqsym, lessym, leqsym,
+multsym,  slashsym, oddsym, eqlsym, neqsym, lessym, leqsym,
 gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
 periodsym, becomessym, beginsym, endsym, ifsym, thensym, 
 whilesym, dosym, callsym, constsym, varsym, procsym, writesym,
-readsym , elsesym } token_type;
+readsym , elsesym = 33
+} token_type;
 
-//Token data structure
 typedef struct {
-    char identifier[MAX_CHARACTER_LENGTH]; //String name 
-    int num; //Numerical value of token
-    token_type type; //Determines token string or numerical 
+    char identifier[MAX_CHARACTER_LENGTH]; //Store lexeme string
+    char symType[MAX_CHARACTER_LENGTH]; //Store Sym String
+    char reservedW[MAX_CHARACTER_LENGTH];//Store reserved Words
+    token_type tkn; //token value
 }token;
- 
-//Special Symbols: Key Identifiers for the compiler
- const char specialSymbols[]={'+', '-', '*', '/', '(', ')', '=', ',' , '.', '<', '>',  ';' , ':'};
-//Reserved Words: Words reserved for the compiler
- const char* reservedWords[]={"const", "var", "procedure", "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write", "odd"};
 
-//Index counter to maintain position and size of the symbol table
- int pos = 0;
-//Symbol Table to maintain reserved words and symbols
- token table_lex[MAX_SIZE];
+token tok[MAX];
+int globalCounter = 0;          //0         1       2           3       4       5       6       7       8       9      10   11      12      13
+const char * reservedWords[] = { "const", "var", "procedure", "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write", "odd"};
+                                //0     1    2    3    4    5   6     7   8     9   10  11  12
+const char * specialSymbols[] = { "+", "-", "*", "/", "(", ")", "=", ",",".", "<", ">", ";" ":"};
 
-//Determine if the input file was unable to open - part 1
-void checkFile(FILE *ifp) {
-    //Check if input file is nonexistent
-    if(ifp == NULL) {
-     //print to console to user, file is unable to be able to open
-        printf("File couldn't open, please check the name of the input text file");
-        //Exit the program for failure case if input file is unable to open
+void checkProgram(FILE *ifp) {
+     if(ifp == NULL) {
+        printf("Input file couldn't open!\n");
         exit(EXIT_FAILURE);
     }
 }
-//Reprints the Input Program, Source code - part 1
-void reprintSourceProgram(FILE* ifp, FILE* ofp) {
+void printProgram(FILE *ifp, FILE *ofp) {
     char temp;
-    //Prints Header to output file
-     fprintf(ofp, "Source Program:\n");
-     //Retrieves the first character in the input file
-     temp = fgetc(ifp);
-     //Continuosly loops through file until termination
-     while(temp != EOF) {
-        //Prints the current character in output file
-        fprintf(ofp, "%c", temp);
-        //Retrieves the next character in input file
-        temp = fgetc(ifp);
+    fprintf(ofp, "Source Program:\n");
+    temp = fgetc(ifp);
+    while(temp != EOF) {
+    fprintf(ofp, "%c", temp); 
+    temp = fgetc(ifp); 
     }
+    fseek(ifp, 0, SEEK_SET);
 }
-//Search for reserved word in string
-int searchForReservedWord(char wordString[]) {
-     int i, wordPos = -1;
-     //Determine if the string is a reserved word
-      for(i=0; i < MAX_CHARACTER_LENGTH;i++) 
-          if(strcmp(wordString, reservedWords[i])==0)
-                wordPos=i; //Save location of the reserved word
-     return wordPos;           
-}
-//If an alphabet, the string is copied into the table
-void lexicalAssign(char wordString[]) {
-    //Search for reserved word in string
-      int wordPos = searchForReservedWord(wordString);
-           //Find the reserved word location if there is a reserved word in the character string
-           //In order of reservedWord Array List 
-            switch(wordPos){
-                //Assign 'const' from ReservedWord Array to Symbol Table
-                case 0:
-                    table_lex[pos].type = constsym;
-                    strcpy(table_lex[pos].identifier, wordString);
-                    break;
-                //Assign 'var' from ReservedWord Array to Symbol Table
-                case 1:
-                    table_lex[pos].type = varsym;
-                    strcpy(table_lex[pos].identifier, wordString);
-                    break;
-                //Assign 'procedure' from ReservedWord Array to Symbol Table
-                case 2:
-                    table_lex[pos].type = procsym;
-                    strcpy(table_lex[pos].identifier, wordString);
-                    break;
-                //Assign 'call' from ReservedWord Array to Symbol Table
-                case 3:
-                    table_lex[pos].type = callsym;
-                    strcpy(table_lex[pos].identifier, wordString);
-                    break;
-                //Assign 'begin' from ReservedWord Array to Symbol Table
-                case 4:
-                    table_lex[pos].type = beginsym;
-                    strcpy(table_lex[pos].identifier,wordString);
-                    break;
-                //Assign 'end' from ReservedWord Array to Symbol Table
-                case 5:
-                    table_lex[pos].type = endsym;
-                    strcpy(table_lex[pos].identifier, wordString);
-                    break;
-                //Assign 'if' from ReservedWord Array to Symbol Table
-                case 6:
-                    table_lex[pos].type = ifsym;
-                    strcpy(table_lex[pos].identifier, wordString);
-                    break;
-                //Assign 'then' from ReservedWord Array to Symbol Table
-                case 7:
-                    table_lex[pos].type = thensym;
-                    strcpy(table_lex[pos].identifier, wordString);
-                    break;
-                //Assign 'else' from ReservedWord Array to Symbol Table
-                case 8:
-                    table_lex[pos].type = elsesym;
-                    strcpy(table_lex[pos].identifier, wordString);
-                    break;
-                //Assign 'while' from ReservedWord Array to Symbol Table
-                case 9:
-                    table_lex[pos].type = whilesym;
-                    strcpy(table_lex[pos].identifier, wordString);
-                    break;
-                //Assign 'do' from ReservedWord Array to Symbol Table
-                case 10:
-                    table_lex[pos].type = dosym;
-                    strcpy(table_lex[pos].identifier, wordString);
-                    break;
-                //Assign 'read' from ReservedWord Array to Symbol Table
-                case 11:
-                    table_lex[pos].type = readsym;
-                    strcpy(table_lex[pos].identifier,wordString);
-                    break;
-                //Assign 'write' from ReservedWord Array to Symbol Table
-                case 12:
-                    table_lex[pos].type = writesym;
-                    strcpy(table_lex[pos].identifier,wordString);
-                    break;
-                //Assign 'odd' from ReservedWord Array to Symbol Table
-                case 13:
-                    table_lex[pos].type = oddsym;
-                    strcpy(table_lex[pos].identifier,wordString);
-                    break;
-               //If no reserved word was found in string,assign the ident to table, and copy character string to symbol.name
-                default:
-                    table_lex[pos].type = identsym;
-                    strcpy(table_lex[pos].identifier,wordString);
-                    break;
-            }
-            //Increment the the size of lexeme Table
-            pos++;
-}
- //Determine if the number is too long
-int checkNumberTooLong(FILE *ifp, int num, char temp,  int flag) {
-     int digit, loc = 1;
-     //Go through input file to determine each character is a digit
-     temp = fgetc(ifp);
-     while(isdigit(temp)){
-       //Determine if the number is longer than the maximum requirement
-       if(loc > MAX_NUMBER_LENGTH) { 
-            flag = 1; //Flag an error
+void checkProgramPeriod(FILE *ifp) {
+   char temp;
+   temp = fgetc(ifp); 
+   while(temp != EOF) { 
+        if(temp == '.') {
+            printf("No errors, program is syntactically correct\n\n\n"); 
             break;
         }
-        digit = temp -'0'; //Convert to int
-        num = (10 * num) + digit; //Convert to number
-        loc++; //Increment index of character
-        temp = fgetc(ifp); //retrieve next character
-    }
-        return num; //return num
-}
-//Print out the Special Symbol in the array
-int printSpecialSymbol(FILE *ifp, FILE *ofp, int loc, char temp, char wordString[]) {
-    int i, commentFlag=0;
-    loc=0;
-            int sym = -1;
-            //Determine if the character is a special symbol
-            for(i = 0; i < SPECIAL_SYMBOL_LENGTH; i++){
-                if(temp == specialSymbols[i])
-                    sym = i; //Reserved the location of the special symbol that was found
-            }
+        else 
+            temp = fgetc(ifp);
+   }
+   if(temp != '.')
+        printf("***** Error number #9, period expected \n\n\n"); 
 
-           //Assign the SymbolTable number to the symbol location
-            switch(sym){
-                //Assign the table of the Addition symbol '+'
-                case 0:
-                    table_lex[pos].type = plussym;
-                    strcpy(table_lex[pos].identifier, wordString); 
-                    break;
-               //Assign the table of the Subraction symbol '-'
-                case 1:
-                    table_lex[pos].type = minussym;
-                    strcpy(table_lex[pos].identifier, wordString); 
-                    break;
-               //Assign the table of the Multiplication symbol '*'
-                case 2:
-                    table_lex[pos].type = multsym;
-                    strcpy(table_lex[pos].identifier, wordString); 
-                    break;
-               //Determine if the '/' leads to a comment
-                case 3:
-                    //Check if the next character is truly a comment, '*'
-                    temp =fgetc(ifp);
-                    loc=1;
-                    //If a comment, ignore the remaining words since a comment
-                    if(temp =='*'){
-                        commentFlag = 1 , loc=0;
-                        temp = fgetc(ifp); //Retireve next character to reinsure it's a comment
-                        //Go through, ignore lines until comments are gone
-                        while(commentFlag == 1){
-                          //Loop thorugh until machine reads the third part of the comment
-                            if(temp =='*'){
-                                temp =fgetc(ifp);
-                                //Once last component of the comment is met, turn off comment flag
-                                if(temp =='/')
-                                    commentFlag=0;
-                            }
-                            else{
-                             //Keep retrieving each character until comment flag is 0
-                                temp =fgetc(ifp);
-                            }
+     fseek(ifp, 0, SEEK_SET);
+}
+ char printSymbols(char temp, FILE *ifp) {
+      if(temp == '+') {
+        char *tmp = calloc(2, sizeof(char)); 
+        tmp[0] = '+';
+        strcpy(tok[globalCounter].identifier, tmp);
+       // printf("%s\n", tok[globalCounter].identifier); 
+        globalCounter++; 
+        free(tmp);
+       }
+      else if(temp == '-') {
+        char *tmp = calloc(2, sizeof(char)); 
+        tmp[0] = '-';
+        strcpy(tok[globalCounter].identifier, tmp);
+        globalCounter++; 
+        free(tmp);
+       }
+       else if(temp == '*') {
+        char *tmp = calloc(2, sizeof(char)); 
+        tmp[0] = '*';
+        strcpy(tok[globalCounter].identifier, tmp);
+        globalCounter++; 
+        free(tmp);
+      }
+      else if(temp == '/') {
+        char *tmp = calloc(2, sizeof(char)); 
+        tmp[0] = '/';
+        strcpy(tok[globalCounter].identifier, tmp);
+        globalCounter++; 
+        free(tmp); 
+      }
+       else if(temp == '(') {
+        char *tmp = calloc(2, sizeof(char)); 
+        tmp[0] = '(';
+        strcpy(tok[globalCounter].identifier, tmp);
+        globalCounter++; 
+        free(tmp);
+      }
+      else if(temp == ')') {
+        char *tmp = calloc(2, sizeof(char)); 
+        tmp[0] = ')';
+        strcpy(tok[globalCounter].identifier, tmp);
+        globalCounter++; 
+        free(tmp);
+      }
+       else if(temp == '=') {
+        char *tmp = calloc(2, sizeof(char)); 
+        tmp[0] = '=';
+        strcpy(tok[globalCounter].identifier, tmp);
+        globalCounter++; 
+        free(tmp);
+      }
+      else if(temp == ',') {
+        char *tmp = calloc(2, sizeof(char)); 
+        tmp[0] = ',';
+        strcpy(tok[globalCounter].identifier, tmp);
+        //printf("%s\n", tok[globalCounter].identifier); 
+        globalCounter++; 
+        free(tmp);
+      }
+      else if(temp == '<') {
+        char *tmp = calloc(2, sizeof(char)); 
+        tmp[0] = '<';
+        strcpy(tok[globalCounter].identifier, tmp);
+        globalCounter++; 
+        free(tmp);
+      }
+      else if(temp == '>') {
+        char *tmp = calloc(2, sizeof(char)); 
+        tmp[0] = '>';
+        strcpy(tok[globalCounter].identifier, tmp);
+        globalCounter++; 
+        free(tmp);
+      }
+      else if(temp == ';') {
+        char *tmp = calloc(2, sizeof(char)); 
+        tmp[0] = ';';
+        strcpy(tok[globalCounter].identifier, tmp);
+        globalCounter++; 
+        free(tmp);
+      }
+      else if(temp == '.') {
+        char *tmp = calloc(2, sizeof(char)); 
+        tmp[0] = '.';
+        strcpy(tok[globalCounter].identifier, tmp);
+        globalCounter++; 
+        free(tmp);
+      }
+      else {
+        //printf("Error!\n");
+      }
+      temp = fgetc(ifp); 
+      return temp; 
+ }
+void convertAlphaReserved() {
+    int i = 0, j = 0;
+    int condition = 0;
+
+    for(i = 0; i < globalCounter; i++) {
+        for(j = 0; j < 14; j++) {
+          condition = strcmp(tok[i].identifier, reservedWords[j]); 
+        
+      if(condition == 0) {
+          int constemp = strcmp(tok[i].identifier,"const");
+          int vartemp = strcmp(tok[i].identifier,"var");
+          int proceduretemp = strcmp(tok[i].identifier,"procedure");
+          int calltemp = strcmp(tok[i].identifier,"call");
+          int begintemp = strcmp(tok[i].identifier,"begin");
+          int endtemp = strcmp(tok[i].identifier,"end");
+          int iftemp = strcmp(tok[i].identifier,"if");
+          int thentemp = strcmp(tok[i].identifier,"then");
+          int elsetemp = strcmp(tok[i].identifier,"else");
+          int whiletemp = strcmp(tok[i].identifier,"while");
+          int dotemp = strcmp(tok[i].identifier,"do");
+          int readtemp = strcmp(tok[i].identifier,"read");
+          int writetemp = strcmp(tok[i].identifier,"write");
+          int oddtemp = strcmp(tok[i].identifier,"odd");
+          int multtemp = strcmp(tok[i].identifier, "mult"); 
+
+        if(constemp == 0) {
+            strcpy(tok[i].reservedW, "constsym"); 
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = constsym;
+            
+            int strcondition = 1;
+            while(strcondition != 0) {
+                i++;
+                int tempSize = strlen(tok[i].identifier);
+                char *tempString = malloc(sizeof(char)*tempSize); 
+                strcpy(tempString, tok[i].identifier);
+                char tmptoken = tempString[0];
+
+                if(isalpha(tmptoken)) {
+                   strcpy(tok[i].reservedW, "identsym");
+                   tok[i].tkn = identsym;
+                }
+                strcondition = strcmp(tok[i].identifier, ";");
+            }
+          }
+        if(vartemp == 0) {
+            strcpy(tok[i].reservedW, "varsym"); 
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = varsym;
+            
+            int strcondition = 1;
+            while(strcondition != 0) {
+                i++;
+                int tempSize = strlen(tok[i].identifier);
+                char *tempString = malloc(sizeof(char)*tempSize); 
+                strcpy(tempString, tok[i].identifier);
+                char tmptoken = tempString[0];
+
+                if(isalpha(tmptoken)) {
+                   strcpy(tok[i].reservedW, "identsym");
+                   tok[i].tkn = identsym;
+                }
+                strcondition = strcmp(tok[i].identifier, ";");
+            }
+          }
+        if(proceduretemp == 0) {
+            strcpy(tok[i].reservedW, "procsym");
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = procsym;
+          }
+        if(calltemp == 0) {
+            strcpy(tok[i].reservedW, "callsym"); 
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = callsym;
+          }
+        if(begintemp == 0) {
+            strcpy(tok[i].reservedW, "beginsym");
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = beginsym; 
+          }
+        if(endtemp == 0) {
+            strcpy(tok[i].reservedW, "endsym"); 
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = endsym;
+          }
+        if(iftemp == 0) {
+            strcpy(tok[i].reservedW, "ifsym");
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = ifsym; 
+          }
+        if(thentemp == 0) {
+            strcpy(tok[i].reservedW, "thensym"); 
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = thensym;
+          }
+        if(elsetemp == 0) {
+            strcpy(tok[i].reservedW, "elsesym");
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = elsesym;
+          }
+        if(whiletemp == 0) {
+            strcpy(tok[i].reservedW, "whilesym"); 
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = whilesym;
+          }
+        if(dotemp == 0) {
+            strcpy(tok[i].reservedW, "dosym");
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = dosym;
+          }
+        if(readtemp == 0) {
+            strcpy(tok[i].reservedW, "readsym"); 
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = readsym;
+          }
+        if(writetemp == 0) {
+            strcpy(tok[i].reservedW, "writesym");
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = writesym;
+          }
+        if(oddtemp == 0) {
+            strcpy(tok[i].reservedW, "oddsym"); 
+            strcpy(tok[i].symType, reservedWords[j]);
+            tok[i].tkn = oddsym;
+          }
+        if(multtemp == 0) {
+            strcpy(tok[i].reservedW, "multsym"); 
+            strcpy(tok[i].symType, reservedWords[j]); 
+            tok[i].tkn = multsym; 
+         }
+       }
+     }
+    }
+    for(int i = 0; i < globalCounter; i++) {
+     for(int k = 0; k < globalCounter; k++) {
+        int same = strcmp(tok[i].identifier, tok[k].identifier); 
+        if(same == 0) {
+          strcpy(tok[k].reservedW, tok[i].reservedW);
+          tok[k].tkn = tok[i].tkn;
+        }
+      }
+    }
+ }
+ void convertDigitReserved() {
+    int i; 
+    for(i = 0; i < globalCounter; i++) {
+              int tempSize = strlen(tok[i].identifier);
+              char *tempDigit = malloc(sizeof(char)*tempSize); 
+              strcpy(tempDigit, tok[i].identifier);
+              char tmptoken = tempDigit[0];
+        if(isdigit(tmptoken)) {
+            strcpy(tok[i].reservedW, "numbersym");
+            tok[i].tkn = numbersym;
+        }
+    }
+ }
+ void convertSymbolReserved() {
+     int i = 0, j = 0;
+      int condition = 0;
+
+    for(i = 0; i < globalCounter; i++) {
+         int templen = strlen(tok[i].identifier);
+         char * tempchar = calloc(templen, sizeof(char)); 
+         strcpy(tempchar, tok[i].identifier);
+
+          if(tempchar[0] == '+') {
+            strcpy(tok[i].reservedW, "plussym"); 
+            tok[i].tkn = plussym;
+          }
+         else if(tempchar[0] == '-') {
+            strcpy(tok[i].reservedW, "minussym"); 
+            tok[i].tkn = minussym;
+          }
+        else if(tempchar[0] == '*') {
+            strcpy(tok[i].reservedW, "multsym"); 
+            tok[i].tkn = multsym;
+          }
+         else if(tempchar[0] == '/') {
+            strcpy(tok[i].reservedW, "slashsym"); 
+            tok[i].tkn = slashsym;
+          } 
+         else if(tempchar[0] == '(') {
+            strcpy(tok[i].reservedW, "lparentsym"); 
+            tok[i].tkn = lparentsym;
+          }
+         else if(tempchar[0] == ')') {
+            strcpy(tok[i].reservedW, "rparentsym"); 
+            tok[i].tkn = rparentsym;
+          }   
+        else if(tempchar[0] == '=') {
+            strcpy(tok[i].reservedW, "eqlsym"); 
+            tok[i].tkn = eqlsym;
+          }
+        else if(tempchar[0] == ',') {
+            strcpy(tok[i].reservedW, "commasym"); 
+            tok[i].tkn = commasym;
+          }
+        else if(tempchar[0] == '.') {
+            strcpy(tok[i].reservedW, "periodsym"); 
+            tok[i].tkn = periodsym;
+          }
+         else if(tempchar[0] == '<') {
+            strcpy(tok[i].reservedW, "lessym"); 
+            tok[i].tkn = lessym;
+          }
+         else if(tempchar[0] == '>') {
+            strcpy(tok[i].reservedW, "gtrsym"); 
+            tok[i].tkn = gtrsym;
+          }
+        else if(tempchar[0] == ';') {
+            strcpy(tok[i].reservedW, "semicolonsym"); 
+            tok[i].tkn = semicolonsym;
+          }   
+         else if(tempchar[0] == ':') {
+             if(tempchar[1] == '=') {
+            strcpy(tok[i].reservedW, "becomesym"); 
+            tok[i].tkn = becomessym;
+             }
+          }
+          else{
+
+          }  
+       }
+     }
+void printTable(FILE *ofp) {
+     fprintf(ofp, "\nLexeme Table:\nlexeme\t\ttoken type\n"); 
+     for(int i = 0; i < globalCounter; i++) {
+     int tempsize = strlen(tok[i].identifier); 
+    if((tempsize >= 2) && (tempsize <= 3)) {
+        fprintf(ofp, "%s\t\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
+     }
+     else if((tempsize >= 4) && (tempsize <= 6)) {
+         fprintf(ofp, "%s\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
+     }
+     else if((tempsize >= 7) && (tempsize <= 9)) {
+         fprintf(ofp, "%s\t\t%d\n", tok[i].identifier, tok[i].tkn);
+     }
+     else if((tempsize >= 10)) {
+        fprintf(ofp, "%s %d\n", tok[i].identifier, tok[i].tkn);
+     }
+     else 
+         fprintf(ofp, "%s\t\t\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
+   }
+}
+void printLexemeList(FILE *ofp) {
+   //fprintf(ofp, "\nLexeme List\n"); 
+    int i; 
+    for(i = 0; i < globalCounter; i++) {
+        fprintf(ofp, "%d ", tok[i].tkn); 
+        if(tok[i].tkn == 2)
+            fprintf(ofp, "%s ", tok[i].identifier);
+        if(tok[i].tkn == 3) 
+            fprintf(ofp, "%s ", tok[i].identifier); 
+    }
+}
+void printSymbolicRep() {
+      int i; 
+    for(i = 0; i < globalCounter; i++) {
+        printf("%s ", tok[i].reservedW); 
+        if(tok[i].tkn == 2)
+            printf("%s ", tok[i].identifier);
+        if(tok[i].tkn == 3) 
+            printf("%s ", tok[i].identifier); 
+    }
+}
+void lexical(int lexFlag) {
+    FILE *ifp, *ofp; 
+    char temp; 
+    ifp = fopen("input.txt", "r");
+    ofp = fopen("lexemeList.txt", "w"); 
+
+    //If the file isn't there or could not open properly, end the program.
+     if(ifp == NULL){
+        printf("Input File could not open\n");
+      }
+   //Part I  
+   //checkProgram(ifp);
+   //printProgram(ifp, ofp); 
+
+   //Part II 
+   //checkProgramPeriod(ifp); 
+   int counter = 0; 
+   char wordTemp[MAX_CHARACTER_LENGTH] = {0};
+
+   temp = fgetc(ifp); 
+   while(temp != EOF) {
+       //----------------------------------------------------------
+       //Word
+       if(isalpha(temp)) {
+           wordTemp[counter] = temp; 
+           counter++; 
+           temp = fgetc(ifp);
+           //No longer a Word
+           if(!isalpha(temp)) {
+             strcpy(tok[globalCounter].identifier, wordTemp);
+            // printf("%s\n", tok[globalCounter].identifier); 
+             globalCounter++; 
+             for(int i = 0; i < counter; i++)
+                wordTemp[i] = 0;
+              counter = 0;
+           }
+       }
+      //----------------------------------------------------------
+       //Anything else than a letter
+       else if(!isalpha(temp)) {
+           //----------------------------------------------------------
+           //Number
+           if(isdigit(temp)) {
+                wordTemp[counter] = temp; 
+                counter++; 
+                temp = fgetc(ifp);
+               if(!isdigit(temp)) {
+                strcpy(tok[globalCounter].identifier, wordTemp); 
+                 globalCounter++; 
+                for(int i = 0; i < counter; i++)
+                      wordTemp[i] = 0;
+                counter = 0;
+               }
+           }
+           //----------------------------------------------------------
+           //Symbol, Space, or Comment 
+           else if(!isdigit(temp)) {
+             //----------------------------------------------------------
+               //Space
+                if((temp == ' ') || (temp == '\t') || (temp == '\n')) {
+                    temp = fgetc(ifp); 
+                    continue; 
+                 }
+             //----------------------------------------------------------
+             //Symbols
+               else if(temp == ':') {
+                   temp = fgetc(ifp);
+                   if(temp == '='){
+                       char *tmp = calloc(2, sizeof(char)); 
+                       tmp[0] = ':';
+                       tmp[1] = '=';
+                       strcpy(tok[globalCounter].identifier, tmp); 
+                       globalCounter++; 
+                      free(tmp);
+                      temp = fgetc(ifp); 
+                   }
+                   else {
+                       temp = fgetc(ifp);
+                       continue;
+                    }
+                }
+           //----------------------------------------------------------
+           //Comment
+             else if(temp == '/'){
+                temp = fgetc(ifp); 
+                if(temp == '*') {
+                   temp = fgetc(ifp);
+                    while(temp != '*') {  
+                        temp = fgetc(ifp);
+                    }
+                    if(temp == '*') {
+                         temp = fgetc(ifp); 
+                        if(temp == '/'){
+                          temp = fgetc(ifp);
+                          continue; 
                         }
                     }
-                    else{
-                        //Simply a '/', assign to table
-                        table_lex[pos].type = slashsym;
-                        strcpy(table_lex[pos].identifier, wordString); 
-                    }
-                    break;
-               //Assign the table of the Left Parenthesis symbol '('
-                case 4:
-                    table_lex[pos].type = lparentsym;
-                    strcpy(table_lex[pos].identifier, wordString); 
-                    break;
-               //Assign the table of the Right Parenthesis symbol ')'
-                case 5:
-                    table_lex[pos].type = rparentsym;
-                    strcpy(table_lex[pos].identifier, wordString); 
-                    break;
-               //Assign the table of the Equal symbol '='
-                case 6:
-                    table_lex[pos].type = eqsym;
-                    strcpy(table_lex[pos].identifier, wordString); 
-                    break;
-               //Assign the table of the Comma symbol ','
-                case 7:
-                    table_lex[pos].type = commasym;
-                    strcpy(table_lex[pos].identifier, wordString); 
-                    break;
-               //Assign the table of the Period symbol '.'
-                case 8:
-                    table_lex[pos].type = periodsym;
-                    strcpy(table_lex[pos].identifier, wordString); 
-                    break;
-               //Assign the table of either the Less than, Greater than, or Equal to symbol 
-                case 9:
-                    temp =fgetc(ifp);
-                    loc=1;
-                    if(temp =='>'){
-                        table_lex[pos].type = neqsym;
-                        strcpy(table_lex[pos].identifier, wordString); 
-                        loc=0;
-                    }
+               } 
+                 else 
+                   continue; 
+              }
+              else
+                temp = printSymbols(temp, ifp); 
+           //----------------------------------------------------------
+           } //End of Symbol, Space, or Comment
+       } //End of Not a Letter
+   } //End of character while loop 
 
-                    else if(temp =='='){
-                        table_lex[pos].type = leqsym;
-                        strcpy(table_lex[pos].identifier, wordString); 
-                        loc=0;
-                    }
-
-                    else{
-                        table_lex[pos].type = lessym;
-                        strcpy(table_lex[pos].identifier, wordString); 
-                    }
-                    break;
-               //Assign the table of the Greater than symbol '>'or Equal to
-                case 10:
-                    temp =fgetc(ifp);
-                    loc=1;
-                    if(temp =='='){
-                        table_lex[pos].type = geqsym;
-                        strcpy(table_lex[pos].identifier, wordString); 
-                        loc=0;
-                    }
-
-                    else{
-                        table_lex[pos].type = gtrsym;
-                        strcpy(table_lex[pos].identifier, wordString); 
-                    }
-                    break;
-               //Assign the table of the SemiColon symbol ';'
-                case 11:
-                    table_lex[pos].type = semicolonsym;
-                    strcpy(table_lex[pos].identifier, wordString); 
-                    break;
-               //Assign the table of the becomessym symbol ':='
-                case 12:
-                    temp = fgetc(ifp);
-                    if(temp == '='){
-                        table_lex[pos].type = becomessym;
-                        wordString = ":="; 
-                        strcpy(table_lex[pos].identifier, wordString); 
-                    }
-                    break;
-                default:
-                    fprintf(ofp,"Symbols are Invalid\n");
-                    break;
-            }
-          //Increment the the size of lexeme Table
-           pos++;
-        return loc;
-}
-//Goes through each character in the file and perform the Lexical Analyzer Function - part 2
-void lexicalAnalyzer(FILE *ifp, FILE *ofp) {
-   int i, flag, letter, tn =0;
-   fseek(ifp, 0, SEEK_SET); //reset file pointer to begining of input file
-   letter = fgetc(ifp);
-    //Reads each character until end of file
-    while(letter != EOF){
-        //-----------------------------------------------------------------------
-        //Invisible Characters - don't tokenize 
-        if(letter ==' '|| letter =='\t'|| letter =='\n') {
-            letter = fgetc(ifp);
-            tn =0;
-            continue;
-        }
-       //-----------------------------------------------------------------------
-        //If character is a letter
-        if(isalpha(letter)){
-            int index = 0;
-            char wordString[MAX_CHARACTER_LENGTH] = {0}; //temp
-           //Initalize the first index for name array
-            wordString[index] = letter;
-            index ++;
-            tn = 1;
-            //Determine if the character has a digit in the string
-           while(isalpha(letter =fgetc(ifp))||isdigit(letter)){
-            //If the character exceeds the limit 
-             if(index > MAX_CHARACTER_LENGTH) { 
-                flag =1; //flag as error
-                break;
-            }
-                //loop through until string is filled up with word
-                wordString[index]= letter;
-                index++;
-            }
-            if(flag == 1) {
-                flag = 0;
-                continue;
-            }
-           //assign reserved words into lexical table
-           lexicalAssign(wordString);
-        }
-        //---------------------------------------------------
-         //If character is a number
-        else if(isdigit(letter)){
-           int number = letter -'0'; //convert ascii character to actual number
-           char temp[5] = {0}; //number max
-           int i = 0;
-           //Determine if the digit exceeds the limit  
-           number = checkNumberTooLong(ifp, number, letter, flag);
-
-            //loop through until digit is fully in string 
-            while(isdigit(letter)){
-                temp[i]= letter;
-                ++i;
-               letter = fgetc(ifp); 
-            }
-            
-            //Converts int to string
-            sprintf(temp, "%d", number);
-            strcpy(table_lex[pos].identifier, temp);
-            //copies the digit into lexical table identifier 
-            table_lex[pos].num = number;
-            table_lex[pos].type = numbersym;
-            pos++;
-        }
-        //---------------------------------------------------
-        //If not alphabet, nor digit, has to be a symbol
-        else {
-            int symbolIndex = 0; 
-            char temp[SPECIAL_SYMBOL_LENGTH] = {0}; 
-            //Retrieves the current symbol
-            temp[symbolIndex]= letter; 
-            symbolIndex++;
-            //Assign the correct symbol to the lexical list
-            tn = printSpecialSymbol(ifp, ofp, tn, letter, temp);
-        }
-        if(tn == 0){
-            letter = fgetc(ifp);
-        }
-    }
-}
-//Print the Lexeme Table - part 2
-void printTable(FILE *ifp, FILE *ofp) {
-    int i;
-    char temp;
-    fseek(ifp, 0, SEEK_SET); //reset file pointer to begining of input file
-    //Print Header
-    fprintf(ofp, "\nLexeme Table:\nlexeme\t\ttoken type\n");
-    for(i = 0; i < pos; i++) { //pos
-        fprintf(ofp, "%s", table_lex[i].identifier); //Print Lexeme token
-        fprintf(ofp, "\t\t%d", table_lex[i].type); //Print Token Type
-        fprintf(ofp, "\n");
-    }
-}
-//Prints the Lexical List - part 3
-void printLexeme(FILE *ofp) {
-    int i;
-    //fprintf(ofp, "\nLexeme List:\n");
-    for(i = 0; i < pos; i++){
-        //Prints the character numerical representation
-        fprintf(ofp,"%d ", table_lex[i].type);
-        
-        //Prints the variable
-        if(table_lex[i].type==2)
-            fprintf(ofp,"%s ", table_lex[i].identifier);
-        
-        //Prints number
-        else if(table_lex[i].type == 3)
-            fprintf(ofp,"%d ",table_lex[i].num);
-        
-    }
-}
-void lexical(int lexFlag){
-    FILE* ifp; //input file
-    FILE* ofp; //output file 
-
-    ifp = fopen("input.txt", "r"); //reads input file 
-    ofp = fopen("lexicalAnalyzerOutput.txt", "w"); //write to output file 
+    convertAlphaReserved();
+    convertDigitReserved(); 
+    convertSymbolReserved(); 
+    //printTable(ofp); 
     
-    //part 1
-    checkFile(ifp); //Determine if file is able to open 
-    //reprintSourceProgram(ifp, ofp); //Reprint Source Program
-    
-    //part 2
-    lexicalAnalyzer(ifp, ofp); //Conduct the main task of lexical analyzer 
-    //printTable(ifp, ofp); //Print the Lexeme Table 
+    //Part III 
+    printLexemeList(ofp);
 
-    //part 3
-    printLexeme(ofp); //Print the Lexeme List 
-    //Close input and output file
     fclose(ifp);
-    fclose(ofp);
+    fclose(ofp); 
 
     if(lexFlag) {
         char temp; 
-        ofp = fopen("lexicalAnalyzerOutput.txt", "r");
+        ifp = fopen("input.txt", "r"); 
+        ofp = fopen("lexemeList.txt", "r");
         fseek(ofp, 0, SEEK_SET);
         printf("Lexeme List:\n");
         temp = fgetc(ofp);
@@ -461,7 +551,10 @@ void lexical(int lexFlag){
              temp = fgetc(ofp);
         }
         printf("\n\n");
+        printSymbolicRep(); 
+        printf("\n\n");
+        checkProgramPeriod(ifp);
         fclose(ofp);
     }
-    
-}
+
+} //End of Main
