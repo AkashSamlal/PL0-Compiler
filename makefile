@@ -3,8 +3,8 @@ TARGET=compile
 SAVE	:=	$(wildcard	*.txt)
 TEXT	:=	$(patsubst	%.txt,%.txt,	$(SAVE),	$(TARGET))
 
-compile:	compilerDriver.o	lexicalAnalyzer.o	parserCodeGen.o	VM.o
-	$(CC)	compilerDriver.c	lexicalAnalyzer.c	parserCodeGen.c	VM.c	-o	$(TARGET)
+compile:	hw4compiler.o	lexicalAnalyzer.o	parserCodeGen.o	VM.o
+	$(CC)	hw4compiler.c	lexicalAnalyzer.c	parserCodeGen.c	VM.c	-o	$(TARGET)
 
 clean:
 	rm	*.o	$(TEXT)
