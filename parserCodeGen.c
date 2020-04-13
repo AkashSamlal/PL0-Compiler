@@ -62,6 +62,9 @@ void error(int errorCode){
   case 5:
     printf("Semicolon or comma missing.\n");
     break;
+  case 6:
+    printf("Incorrect symbol after procedure declaration.\n");
+    break;
   case 7:
     printf("Statement expected.\n");
     break;
@@ -101,6 +104,9 @@ void error(int errorCode){
   case 20:
     printf("Relational operator expected.\n");
     break;
+  case 21:
+    printf("Expression must not contain a procedure identifier.\n");
+    break;  
   case 22:
     printf("Right parenthesis missing.\n");
     break;
@@ -113,6 +119,12 @@ void error(int errorCode){
   case 25:
     printf("Number is too large.\n");
     break;
+  case 26:
+    printf("Identifier too long.\n");
+    break;
+  case 27:
+    printf("Invalid symbol.\n");
+    break;    
   default:
     printf("Unknown error, please check again");
   }
@@ -312,7 +324,9 @@ void statement(){
     //Undeclared Identifier
     if(ax == 0) 
         error(11);
+
     getToken();
+
     //Should be an equal sign, not becomesym
     if(strcmp(tok.tkn, "20") != 0 ) 
         error(3);
@@ -323,6 +337,55 @@ void statement(){
     emit(4, rp - 1, curlvl - symTable[temp].level, symTable[temp].addr - 1);
     rp--;
   }
+  //call 
+   else if(strcmp(tok.tkn, "27") == 0) {
+      getToken();
+      if((strcmp(tok.tkn, "2") != 0))
+          error(14);
+      else {
+         int declared;
+        for(i = counter - 1; i >= 0; i--) {
+           if((strcmp(tok.value, symTable[i].name)) == 0) {
+               temp = i;
+               declared = 1;  
+             }
+         }
+        if(declared == 0) 
+          error(11);
+        else if(symTable[declared].kind == 3) {
+            emit(5, 0, lvl, symTable[declared].addr);
+        }
+        else {
+            error(15);
+        }
+        getToken();
+      }
+   }
+
+  /*else if(strcmp(tok.tkn, "27") == 0) {
+      int declared = 0;
+      getToken();
+      if((strcmp(tok.tkn, "2") != 0))
+          error(14);
+      for(i = counter - 1; i >= 0; i--) {
+        if((strcmp(tok.value, symTable[i].name)) == 0) {
+          temp = i;
+          declared = 1;  
+        }
+      }
+      if(declared == 0) 
+        error(11);
+
+      if(symTable[temp].kind == 3) {
+        emit(5, 0, lvl, symTable[temp].addr);
+        curlvl++;
+      }
+      else
+      {
+        error(14);
+      }
+      getToken();
+  }*/
   //Check for begin
   else if(strcmp(tok.tkn, "21") == 0){
     getToken();
@@ -348,7 +411,7 @@ void statement(){
     statement();
     getToken();
     //Search for else statement 
-    if(strcmp( tok.tkn, "33") == 0){
+     if(strcmp(tok.tkn, "33") == 0){
         int in2 = indexTrack;
         emit(7, 0, 0, 0);//Jump
         cd[in1].M= indexTrack;
@@ -454,7 +517,7 @@ void varDecl(char *name, int space) {
 //Block is defined as a const-declaration, var-declaration, and statement
 void block(){
   char tmp[12];
-  int v, jmp, gp = 4;
+  int v, jmp, gp = 4, proc_x, procedure_spot;
   jmp = indexTrack;
   sp = 4; 
   emit(7, 0, 0, 0);
@@ -490,8 +553,33 @@ void block(){
       }while(strcmp(tok.tkn, "2") == 0);
     }
     //-----------------------------------------------
-  }while((strcmp(tok.tkn, "28") == 0) || (strcmp(tok.tkn, "29") == 0));
+     //Procedure
+  while(strcmp(tok.tkn, "30") == 0) {
+        getToken();
+      if((strcmp(tok.tkn, "2")) == 0){
+        strcpy(tmp, tok.value);
+        addsymTable(3, tmp, 0, 0);
+        getToken();
+      }
+      else 
+        error(4);
 
+      if(strcmp(tok.tkn, "18") == 0) //semicolon
+               getToken();
+      else 
+        error(5);
+      
+      lvl++;
+      block();
+
+      if(strcmp(tok.tkn, "18") == 0)
+         getToken(); 
+      else 
+        error(5);
+  }
+  }while((strcmp(tok.tkn, "28") == 0) || (strcmp(tok.tkn, "29") == 0) || (strcmp(tok.tkn, "30") == 0));
+ 
+ 
   cd[jmp].M = indexTrack;
   emit(6, 0, 0, gp); //Increment 
   statement();

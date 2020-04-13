@@ -371,7 +371,8 @@ void printExecution(int temp, int index) {
     //Print Contents of Instruction Register
     fprintf(ofp, "%d %s %d %d %d", temp, text[index].name , IR.R, IR.L, IR.M);
     fprintf(ofp, "\t%d\t%d\t%d\t", PC, BP, SP);
-    printf("%d\n", index);
+   // printf("%d\n", index);
+   
     //Print Register File Contents
     for(i = 0; i < REGISTER_FILE_LENGTH; i++)
         fprintf(ofp, "%d ", registerFile[i]);
