@@ -13,8 +13,9 @@ int main(int argc, char *argv[]) {
         if((strcmp(argv[i], "-v") == 0))
             vmFlag = 1;
     }
-
-    lexical(lexFlag);
+    int size = --argc;
+    
+    lexical(lexFlag, argv[size]);
     parser(parseFlag);
     VM(lexFlag, parseFlag, vmFlag);
     

@@ -337,32 +337,8 @@ void statement(){
     emit(4, rp - 1, curlvl - symTable[temp].level, symTable[temp].addr - 1);
     rp--;
   }
-  //call 
-   else if(strcmp(tok.tkn, "27") == 0) {
-      getToken();
-      if((strcmp(tok.tkn, "2") != 0))
-          error(14);
-      else {
-         int declared;
-        for(i = counter - 1; i >= 0; i--) {
-           if((strcmp(tok.value, symTable[i].name)) == 0) {
-               temp = i;
-               declared = 1;  
-             }
-         }
-        if(declared == 0) 
-          error(11);
-        else if(symTable[declared].kind == 3) {
-            emit(5, 0, lvl, symTable[declared].addr);
-        }
-        else {
-            error(15);
-        }
-        getToken();
-      }
-   }
-
-  /*else if(strcmp(tok.tkn, "27") == 0) {
+  //Seeking else
+  else if(strcmp(tok.tkn, "27") == 0) {
       int declared = 0;
       getToken();
       if((strcmp(tok.tkn, "2") != 0))
@@ -385,7 +361,7 @@ void statement(){
         error(14);
       }
       getToken();
-  }*/
+  }
   //Check for begin
   else if(strcmp(tok.tkn, "21") == 0){
     getToken();
@@ -516,8 +492,8 @@ void varDecl(char *name, int space) {
 }
 //Block is defined as a const-declaration, var-declaration, and statement
 void block(){
-  char tmp[12];
-  int v, jmp, gp = 4, proc_x, procedure_spot;
+  char tmp[12] = {0};
+  int v, jmp, gp = 4, procedureInd;
   jmp = indexTrack;
   sp = 4; 
   emit(7, 0, 0, 0);
@@ -553,32 +529,32 @@ void block(){
       }while(strcmp(tok.tkn, "2") == 0);
     }
     //-----------------------------------------------
-     //Procedure
+    
+  }while((strcmp(tok.tkn, "28") == 0) || (strcmp(tok.tkn, "29") == 0));
+  
+  //Procedure
   while(strcmp(tok.tkn, "30") == 0) {
         getToken();
       if((strcmp(tok.tkn, "2")) == 0){
         strcpy(tmp, tok.value);
         addsymTable(3, tmp, 0, 0);
+        procedureInd = counter - 1;
+        symTable[procedureInd].level = lvl;
+        symTable[procedureInd].addr = jmp+1;
         getToken();
       }
       else 
         error(4);
 
-      if(strcmp(tok.tkn, "18") == 0) //semicolon
-               getToken();
-      else 
-        error(5);
-      
+      if(strcmp(tok.tkn, "18") != 0) //semicolon
+            error(17);
+
+      getToken();
       lvl++;
       block();
 
-      if(strcmp(tok.tkn, "18") == 0)
-         getToken(); 
-      else 
-        error(5);
+    getToken();  
   }
-  }while((strcmp(tok.tkn, "28") == 0) || (strcmp(tok.tkn, "29") == 0) || (strcmp(tok.tkn, "30") == 0));
- 
  
   cd[jmp].M = indexTrack;
   emit(6, 0, 0, gp); //Increment 
@@ -596,7 +572,6 @@ void program(){
 void printParser(FILE *ofp) {
   int i;
   for(i = 0; i < indexTrack; i++) {
-      //printf("%d %d %d %d\n", cd[i].OP, cd[i].R, cd[i].L, cd[i].M);
     fprintf(ofp, "%d %d %d %d\n", cd[i].OP, cd[i].R, cd[i].L, cd[i].M);
   }
 }
