@@ -1,3 +1,5 @@
+//Akash Samlal
+//Main Compiler
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
