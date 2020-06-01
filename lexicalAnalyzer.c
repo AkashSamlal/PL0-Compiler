@@ -1,523 +1,420 @@
+//Akash Samlal
+//COP 3402 - HW 2
+//Standard Libraries for C
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
-#include <string.h> 
 #include <ctype.h>
-#define MAX_CHARACTER_LENGTH 11
-#define MAX 100
+#include "header.h"
+#define MAX_CHARACTER_LENGTH 11 //Maximum character length for identifiers
+#define MAX_SIZE 5000 //Maximum Table Size for Lexeme Table
+#define MAX_DIGIT_SIZE 5
 
-//token value, eg: var -> tok[globalCounter].tkn = varsym
-typedef enum { 
-nulsym = 1, identsym, numbersym, plussym, minussym,
-multsym,  slashsym, oddsym, eqlsym, neqsym, lessym, leqsym,
-gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
-periodsym, becomessym, beginsym, endsym, ifsym, thensym, 
-whilesym, dosym, callsym, constsym, varsym, procsym, writesym,
-readsym , elsesym = 33
+typedef enum {
+    nulsym = 1, identsym, numbersym, plussym, minussym,
+    multsym,  slashsym, oddsym, eqlsym, neqsym, lessym, leqsym,
+    gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
+    periodsym, becomessym, beginsym, endsym, ifsym, thensym,
+    whilesym, dosym, callsym, constsym, varsym, procsym, writesym,
+    readsym , elsesym
 } token_type;
 
+//Token data structure
 typedef struct {
-    char identifier[MAX_CHARACTER_LENGTH]; //Store lexeme string
-    char symType[MAX_CHARACTER_LENGTH]; //Store Sym String
-    char reservedW[MAX_CHARACTER_LENGTH];//Store reserved Words
-    token_type tkn; //token value
+ char identifier[MAX_CHARACTER_LENGTH]; //String name
+ char symbolicRep[MAX_CHARACTER_LENGTH]; //Symbolic Rep
+ int num; //Numerical value of token
+ token_type type; //Determines token string or numerical
 }token;
 
-token tok[MAX];
-int globalCounter = 0;          //0         1       2           3       4       5       6       7       8       9      10   11      12      13
-const char * reservedWords[] = { "const", "var", "procedure", "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write", "odd"};
-                                //0     1    2    3    4    5   6     7   8     9   10  11  12
-const char * specialSymbols[] = { "+", "-", "*", "/", "(", ")", "=", ",",".", "<", ">", ";" ":"};
+token table_lex[MAX_SIZE];
+int counterLexical = 0;
 
-void checkProgram(FILE *ifp) {
-     if(ifp == NULL) {
-        printf("File couldn't open!\n");
-        exit(EXIT_FAILURE);
+//For Reserved Words
+const char* reservedWords[]={"const", "var", "procedure", "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write", "odd"};
+
+//For Reserved Special Symbols
+const char specialSymbols[]={'+', '-', '*', '/', '(', ')', '=', ',' , '.', '<', '>',  ';' , ':'};
+
+void lexical(int lexFlag, char inputName[]){
+    FILE* ifp;
+    FILE* ofp;
+
+    ifp = fopen(inputName, "r");
+    ofp = fopen("lexemeList.txt", "w");
+
+    int i = 0, j = 0, k = 0, tok, flag, comFlag = 0, forward = 0;
+//---------------------------------------------------------------------
+    //Initalize List
+    for(i = 0; i < 5000; i++){
+        table_lex[i].type = 0;
     }
-}
-void printProgram(FILE *ifp, FILE *ofp) {
-    char temp;
-    fprintf(ofp, "Source Program:\n");
-    temp = fgetc(ifp);
-    while(temp != EOF) {
-    fprintf(ofp, "%c", temp); 
-    temp = fgetc(ifp); 
-    }
-    fseek(ifp, 0, SEEK_SET);
-}
-void checkProgramPeriod(FILE *ifp) {
-   char temp;
-   temp = fgetc(ifp); 
-   while(temp != EOF) { 
-        if(temp == '.') {
-            printf("Code is runnable\n"); 
-            break;
+//--------------------------------------------------------------------------
+    //Grab first character
+    tok = fgetc(ifp);
+//---------------------------------------------------------
+    //Ignores spaces, tabs, and newlines 
+    while(tok != EOF){
+        if(tok == ' ' || tok =='\t' || tok =='\n'){
+            tok = fgetc(ifp);
+            forward = 0;
+            continue;
         }
-        else 
-            temp = fgetc(ifp);
-   }
-   if(temp != '.')
-        printf("Does not compile, missing .\n");
-    
-     fseek(ifp, 0, SEEK_SET);
-}
- char printSymbols(char temp, FILE *ifp) {
-      if(temp == '+') {
-        char *tmp = calloc(2, sizeof(char)); 
-        tmp[0] = '+';
-        strcpy(tok[globalCounter].identifier, tmp);
-       // printf("%s\n", tok[globalCounter].identifier); 
-        globalCounter++; 
-        free(tmp);
-       }
-      else if(temp == '-') {
-        char *tmp = calloc(2, sizeof(char)); 
-        tmp[0] = '-';
-        strcpy(tok[globalCounter].identifier, tmp);
-        globalCounter++; 
-        free(tmp);
-       }
-       else if(temp == '*') {
-        char *tmp = calloc(2, sizeof(char)); 
-        tmp[0] = '*';
-        strcpy(tok[globalCounter].identifier, tmp);
-        globalCounter++; 
-        free(tmp);
-      }
-      else if(temp == '/') {
-        char *tmp = calloc(2, sizeof(char)); 
-        tmp[0] = '/';
-        strcpy(tok[globalCounter].identifier, tmp);
-        globalCounter++; 
-        free(tmp); 
-      }
-       else if(temp == '(') {
-        char *tmp = calloc(2, sizeof(char)); 
-        tmp[0] = '(';
-        strcpy(tok[globalCounter].identifier, tmp);
-        globalCounter++; 
-        free(tmp);
-      }
-      else if(temp == ')') {
-        char *tmp = calloc(2, sizeof(char)); 
-        tmp[0] = ')';
-        strcpy(tok[globalCounter].identifier, tmp);
-        globalCounter++; 
-        free(tmp);
-      }
-       else if(temp == '=') {
-        char *tmp = calloc(2, sizeof(char)); 
-        tmp[0] = '=';
-        strcpy(tok[globalCounter].identifier, tmp);
-        globalCounter++; 
-        free(tmp);
-      }
-      else if(temp == ',') {
-        char *tmp = calloc(2, sizeof(char)); 
-        tmp[0] = ',';
-        strcpy(tok[globalCounter].identifier, tmp);
-        //printf("%s\n", tok[globalCounter].identifier); 
-        globalCounter++; 
-        free(tmp);
-      }
-      else if(temp == '<') {
-        char *tmp = calloc(2, sizeof(char)); 
-        tmp[0] = '<';
-        strcpy(tok[globalCounter].identifier, tmp);
-        globalCounter++; 
-        free(tmp);
-      }
-      else if(temp == '>') {
-        char *tmp = calloc(2, sizeof(char)); 
-        tmp[0] = '>';
-        strcpy(tok[globalCounter].identifier, tmp);
-        globalCounter++; 
-        free(tmp);
-      }
-      else if(temp == ';') {
-        char *tmp = calloc(2, sizeof(char)); 
-        tmp[0] = ';';
-        strcpy(tok[globalCounter].identifier, tmp);
-        globalCounter++; 
-        free(tmp);
-      }
-      else if(temp == '.') {
-        char *tmp = calloc(2, sizeof(char)); 
-        tmp[0] = '.';
-        strcpy(tok[globalCounter].identifier, tmp);
-        globalCounter++; 
-        free(tmp);
-      }
-      else {
-        //printf("Error!\n");
-      }
-      temp = fgetc(ifp); 
-      return temp; 
- }
-void convertAlphaReserved() {
-    int i = 0, j = 0;
-    int condition = 0;
+ //---------------------------------------------------------       
+        //If a letter
+        if(isalpha(tok)) {
+            int tmp = 0;
+            char string[12];
+            memset(string, 0, sizeof string);
+            string[tmp]= tok;
+            tmp++;
+            forward = 1;
 
-    for(i = 0; i < globalCounter; i++) {
-        for(j = 0; j < 14; j++) {
-          condition = strcmp(tok[i].identifier, reservedWords[j]); 
-        
-      if(condition == 0) {
-          int constemp = strcmp(tok[i].identifier,"const");
-          int vartemp = strcmp(tok[i].identifier,"var");
-          int proceduretemp = strcmp(tok[i].identifier,"procedure");
-          int calltemp = strcmp(tok[i].identifier,"call");
-          int begintemp = strcmp(tok[i].identifier,"begin");
-          int endtemp = strcmp(tok[i].identifier,"end");
-          int iftemp = strcmp(tok[i].identifier,"if");
-          int thentemp = strcmp(tok[i].identifier,"then");
-          int elsetemp = strcmp(tok[i].identifier,"else");
-          int whiletemp = strcmp(tok[i].identifier,"while");
-          int dotemp = strcmp(tok[i].identifier,"do");
-          int readtemp = strcmp(tok[i].identifier,"read");
-          int writetemp = strcmp(tok[i].identifier,"write");
-          int oddtemp = strcmp(tok[i].identifier,"odd");
-          int multtemp = strcmp(tok[i].identifier, "mult"); 
-
-        if(constemp == 0) {
-            strcpy(tok[i].reservedW, "constsym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = constsym;
-            
-            int strcondition = 1;
-            while(strcondition != 0) {
-                i++;
-                int tempSize = strlen(tok[i].identifier);
-                char *tempString = malloc(sizeof(char)*tempSize); 
-                strcpy(tempString, tok[i].identifier);
-                char tmptoken = tempString[0];
-
-                if(isalpha(tmptoken)) {
-                   strcpy(tok[i].reservedW, "identsym");
-                   tok[i].tkn = identsym;
+            while(isalpha(tok =fgetc(ifp)) || isdigit(tok)){
+                if(tmp > 10){
+                    printf("Error 26: Identifier too long.\n");
+                    while (isalpha(tok=fgetc(ifp))||isdigit(tok)) { }
+                    flag =1;
+                    break;
                 }
-                strcondition = strcmp(tok[i].identifier, ";");
+                string[tmp]= tok;
+                tmp++;
             }
-          }
-        if(vartemp == 0) {
-            strcpy(tok[i].reservedW, "varsym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = varsym;
-            
-            int strcondition = 1;
-            while(strcondition != 0) {
-                i++;
-                int tempSize = strlen(tok[i].identifier);
-                char *tempString = malloc(sizeof(char)*tempSize); 
-                strcpy(tempString, tok[i].identifier);
-                char tmptoken = tempString[0];
-
-                if(isalpha(tmptoken)) {
-                   strcpy(tok[i].reservedW, "identsym");
-                   tok[i].tkn = identsym;
+            if(flag==1) {
+                flag=0;
+                continue;
+            }
+            int flagReserved = -1;
+            for(i = 0; i < 14;i++){
+                if(strcmp(string, reservedWords[i]) == 0){
+                    flagReserved = i;
                 }
-                strcondition = strcmp(tok[i].identifier, ";");
             }
-          }
-        if(proceduretemp == 0) {
-            strcpy(tok[i].reservedW, "procsym");
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = procsym;
-          }
-        if(calltemp == 0) {
-            strcpy(tok[i].reservedW, "callsym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = callsym;
-          }
-        if(begintemp == 0) {
-            strcpy(tok[i].reservedW, "beginsym");
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = beginsym; 
-          }
-        if(endtemp == 0) {
-            strcpy(tok[i].reservedW, "endsym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = endsym;
-          }
-        if(iftemp == 0) {
-            strcpy(tok[i].reservedW, "ifsym");
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = ifsym; 
-          }
-        if(thentemp == 0) {
-            strcpy(tok[i].reservedW, "thensym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = thensym;
-          }
-        if(elsetemp == 0) {
-            strcpy(tok[i].reservedW, "elsesym");
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = elsesym;
-          }
-        if(whiletemp == 0) {
-            strcpy(tok[i].reservedW, "whilesym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = whilesym;
-          }
-        if(dotemp == 0) {
-            strcpy(tok[i].reservedW, "dosym");
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = dosym;
-          }
-        if(readtemp == 0) {
-            strcpy(tok[i].reservedW, "readsym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = readsym;
-          }
-        if(writetemp == 0) {
-            strcpy(tok[i].reservedW, "writesym");
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = writesym;
-          }
-        if(oddtemp == 0) {
-            strcpy(tok[i].reservedW, "oddsym"); 
-            strcpy(tok[i].symType, reservedWords[j]);
-            tok[i].tkn = oddsym;
-          }
-        if(multtemp == 0) {
-            strcpy(tok[i].reservedW, "multsym"); 
-            strcpy(tok[i].symType, reservedWords[j]); 
-            tok[i].tkn = multsym; 
-         }
-       }
-     }
-    }
-    for(int i = 0; i < globalCounter; i++) {
-     for(int k = 0; k < globalCounter; k++) {
-        int same = strcmp(tok[i].identifier, tok[k].identifier); 
-        if(same == 0) {
-          strcpy(tok[k].reservedW, tok[i].reservedW);
-          tok[k].tkn = tok[i].tkn;
-        }
-      }
-    }
- }
- void convertDigitReserved() {
-    int i; 
-    for(i = 0; i < globalCounter; i++) {
-              int tempSize = strlen(tok[i].identifier);
-              char *tempDigit = malloc(sizeof(char)*tempSize); 
-              strcpy(tempDigit, tok[i].identifier);
-              char tmptoken = tempDigit[0];
-        if(isdigit(tmptoken)) {
-            strcpy(tok[i].reservedW, "numbersym");
-            tok[i].tkn = numbersym;
-        }
-    }
- }
- void convertSymbolReserved() {
-     int i = 0, j = 0;
-      int condition = 0;
+         //Find the reserved word location if there is a reserved word in the character string
+            switch(flagReserved){
+                //Case for const
+                case 0:
+                    table_lex[counterLexical].type = constsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "constsym"); 
+                    break;
+                //Case for var
+                case 1:
+                    table_lex[counterLexical].type = varsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "varsym"); 
+                    break;
+                //Case for procedure
+                case 2:
+                    table_lex[counterLexical].type = procsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "procsym"); 
+                    break;
+                //Case for call
+                case 3:
+                    table_lex[counterLexical].type = callsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "callsym"); 
+                    break;
+                //Case for begin
+                case 4:
+                    table_lex[counterLexical].type = beginsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "beginsym"); 
+                    break;
+                //Case for end
+                case 5:
+                    table_lex[counterLexical].type = endsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "endsym"); 
+                    break;
+                //Case for if
+                case 6:
+                    table_lex[counterLexical].type = ifsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "ifsym"); 
+                    break;
+                //Case for then
+                case 7:
+                    table_lex[counterLexical].type = thensym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "thensym"); 
+                    break;
+                //Case for else
+                case 8:
+                    table_lex[counterLexical].type = elsesym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "elsesym"); 
+                    break;
+                //Case for while
+                case 9:
+                    table_lex[counterLexical].type = whilesym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "whilesym"); 
+                    break;
+                //Case for do
+                case 10:
+                    table_lex[counterLexical].type = dosym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "dosym"); 
+                    break;
+                //Case for read
+                case 11:
+                    table_lex[counterLexical].type = readsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "readsym"); 
+                    break;
+                //Case for write
+                case 12:
+                    table_lex[counterLexical].type = writesym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "writesym"); 
+                    break;
+                //Case for odd
+                case 13:
+                    table_lex[counterLexical].type = oddsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "oddsym"); 
+                    break;
 
-    for(i = 0; i < globalCounter; i++) {
-         int templen = strlen(tok[i].identifier);
-         char * tempchar = calloc(templen, sizeof(char)); 
-         strcpy(tempchar, tok[i].identifier);
+                default:
+                    table_lex[counterLexical].type = identsym;
+                    strcpy(table_lex[counterLexical].identifier,string);
+                        strcpy(table_lex[counterLexical].symbolicRep, "identsym"); 
+                    break;
+            }
+            counterLexical++;
+        }
+ //---------------------------------------------------------------------------------       
+        //If a number
+        else if(isdigit(tok)){
+            int nm = tok - '0', fae, digSize = 1;
 
-          if(tempchar[0] == '+') {
-            strcpy(tok[i].reservedW, "plussym"); 
-            tok[i].tkn = plussym;
-          }
-         else if(tempchar[0] == '-') {
-            strcpy(tok[i].reservedW, "minussym"); 
-            tok[i].tkn = minussym;
-          }
-        else if(tempchar[0] == '*') {
-            strcpy(tok[i].reservedW, "multsym"); 
-            tok[i].tkn = multsym;
-          }
-         else if(tempchar[0] == '/') {
-            strcpy(tok[i].reservedW, "slashsym"); 
-            tok[i].tkn = slashsym;
-          } 
-         else if(tempchar[0] == '(') {
-            strcpy(tok[i].reservedW, "lparentsym"); 
-            tok[i].tkn = lparentsym;
-          }
-         else if(tempchar[0] == ')') {
-            strcpy(tok[i].reservedW, "rparentsym"); 
-            tok[i].tkn = rparentsym;
-          }   
-        else if(tempchar[0] == '=') {
-            strcpy(tok[i].reservedW, "eqlsym"); 
-            tok[i].tkn = eqlsym;
-          }
-        else if(tempchar[0] == ',') {
-            strcpy(tok[i].reservedW, "commasym"); 
-            tok[i].tkn = commasym;
-          }
-        else if(tempchar[0] == '.') {
-            strcpy(tok[i].reservedW, "periodsym"); 
-            tok[i].tkn = periodsym;
-          }
-         else if(tempchar[0] == '<') {
-            strcpy(tok[i].reservedW, "lessym"); 
-            tok[i].tkn = lessym;
-          }
-         else if(tempchar[0] == '>') {
-            strcpy(tok[i].reservedW, "gtrsym"); 
-            tok[i].tkn = gtrsym;
-          }
-        else if(tempchar[0] == ';') {
-            strcpy(tok[i].reservedW, "semicolonsym"); 
-            tok[i].tkn = semicolonsym;
-          }   
-         else if(tempchar[0] == ':') {
-             if(tempchar[1] == '=') {
-            strcpy(tok[i].reservedW, "becomesym"); 
-            tok[i].tkn = becomessym;
+            forward = 1;
+            //Num max
+            while(isdigit(tok = fgetc(ifp))){
+                if(digSize > MAX_DIGIT_SIZE){
+                    printf("Error 25: This number too large.\n");
+                    while (isdigit(tok = fgetc(ifp))) { }
+                    flag=1;
+                    break;
+                }
+                fae = tok - '0';
+                nm = 10 * nm + fae;
+                digSize++;
+            }
+            if(isalpha(tok)){
+                printf("Error 24: Variable does not start with letter.\n");
+                while(isalpha(tok = fgetc(ifp))||isdigit(tok)){ }
+                continue;
              }
-          }
-          else{
-
-          }  
-       }
-     }
-void printTable(FILE *ofp) {
-     fprintf(ofp, "\nLexeme Table:\nlexeme\t\ttoken type\n"); 
-     for(int i = 0; i < globalCounter; i++) {
-     int tempsize = strlen(tok[i].identifier); 
-    if((tempsize >= 2) && (tempsize <= 3)) {
-        fprintf(ofp, "%s\t\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
-     }
-     else if((tempsize >= 4) && (tempsize <= 6)) {
-         fprintf(ofp, "%s\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
-     }
-     else if((tempsize >= 7) && (tempsize <= 9)) {
-         fprintf(ofp, "%s\t\t%d\n", tok[i].identifier, tok[i].tkn);
-     }
-     else if((tempsize >= 10)) {
-        fprintf(ofp, "%s %d\n", tok[i].identifier, tok[i].tkn);
-     }
-     else 
-         fprintf(ofp, "%s\t\t\t\t\t%d\n", tok[i].identifier, tok[i].tkn);
-   }
-}
-void printLexemeList(FILE *ofp) {
-   fprintf(ofp, "\nLexeme List\n"); 
-    int i; 
-    for(i = 0; i < globalCounter; i++) {
-        fprintf(ofp, "%d ", tok[i].tkn); 
-        if(tok[i].tkn == 2)
-            fprintf(ofp, "%s ", tok[i].identifier);
-        if(tok[i].tkn == 3) 
-            fprintf(ofp, "%s ", tok[i].identifier); 
-    }
-}
-int main() {
-    FILE *ifp, *ofp; 
-    char temp; 
-    ifp = fopen("input.txt", "r");
-    ofp = fopen("output.txt", "w"); 
-
-   //Part I  
-   checkProgram(ifp);
-   printProgram(ifp, ofp); 
-
-   //Part II 
-   checkProgramPeriod(ifp); 
-   int counter = 0; 
-   char wordTemp[MAX_CHARACTER_LENGTH] = {0};
-
-   temp = fgetc(ifp); 
-   while(temp != EOF) {
-       //----------------------------------------------------------
-       //Word
-       if(isalpha(temp)) {
-           wordTemp[counter] = temp; 
-           counter++; 
-           temp = fgetc(ifp);
-           //No longer a Word
-           if(!isalpha(temp)) {
-             strcpy(tok[globalCounter].identifier, wordTemp);
-            // printf("%s\n", tok[globalCounter].identifier); 
-             globalCounter++; 
-             for(int i = 0; i < counter; i++)
-                wordTemp[i] = 0;
-              counter = 0;
-           }
-       }
-      //----------------------------------------------------------
-       //Anything else than a letter
-       else if(!isalpha(temp)) {
-           //----------------------------------------------------------
-           //Number
-           if(isdigit(temp)) {
-                wordTemp[counter] = temp; 
-                counter++; 
-                temp = fgetc(ifp);
-               if(!isdigit(temp)) {
-                strcpy(tok[globalCounter].identifier, wordTemp); 
-                 globalCounter++; 
-                for(int i = 0; i < counter; i++)
-                      wordTemp[i] = 0;
-                counter = 0;
-               }
-           }
-           //----------------------------------------------------------
-           //Symbol, Space, or Comment 
-           else if(!isdigit(temp)) {
-             //----------------------------------------------------------
-               //Space
-                if((temp == ' ') || (temp == '\t') || (temp == '\n')) {
-                    temp = fgetc(ifp); 
-                    continue; 
-                 }
-             //----------------------------------------------------------
-             //Symbols
-               else if(temp == ':') {
-                   temp = fgetc(ifp);
-                   if(temp == '='){
-                       char *tmp = calloc(2, sizeof(char)); 
-                       tmp[0] = ':';
-                       tmp[1] = '=';
-                       strcpy(tok[globalCounter].identifier, tmp); 
-                       globalCounter++; 
-                      free(tmp);
-                      temp = fgetc(ifp); 
-                   }
-                   else {
-                       temp = fgetc(ifp);
-                       continue;
-                    }
+            //Continue w/ error
+            if(flag == 1) {
+                flag=0;
+                continue;
+            }
+            table_lex[counterLexical].type = numbersym;
+            table_lex[counterLexical].num = nm;
+            counterLexical++;
+        }
+//--------------------------------------------------------------------------------------------        
+        //Other: Symbols
+        else {
+            int symbol =-1;
+            forward = 0;
+            for(i = 0; i < 13; i++){
+                if(tok == specialSymbols[i]){
+                    symbol = i;
                 }
-           //----------------------------------------------------------
-           //Comment
-             else if(temp == '/'){
-                temp = fgetc(ifp); 
-                if(temp == '*') {
-                   temp = fgetc(ifp);
-                    while(temp != '*') {  
-                        temp = fgetc(ifp);
-                    }
-                    if(temp == '*') {
-                         temp = fgetc(ifp); 
-                        if(temp == '/'){
-                          temp = fgetc(ifp);
-                          continue; 
+            }
+            //Prints out the correct symbols
+            switch(symbol){
+                //+
+                case 0:
+                    table_lex[counterLexical].type = plussym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "plussym");    
+                    counterLexical++;
+                    break;
+                //-
+                case 1:
+                    table_lex[counterLexical].type = minussym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "minussym"); 
+                    counterLexical++;
+                    break;
+                //*
+                case 2:
+                    table_lex[counterLexical].type = multsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "multsym"); 
+                    counterLexical++;
+                    break;
+
+                //Comments
+                case 3:
+                    tok = fgetc(ifp);
+                    forward=1;
+                    if(tok =='*'){
+                        comFlag=1;
+                        forward=0;
+                        tok =fgetc(ifp);
+                        while(comFlag==1){
+                            if(tok =='*'){
+                                tok =fgetc(ifp);
+                                if(tok =='/'){
+                                    comFlag=0;
+                                }
+                            }
+                            else{
+                                tok =fgetc(ifp);
+                            }
                         }
                     }
-               } 
-                 else 
-                   continue; 
-              }
-             temp = printSymbols(temp, ifp); 
-           //----------------------------------------------------------
-           } //End of Symbol, Space, or Comment
-       } //End of Not a Letter
-   } //End of character while loop 
+                    // /
+                    else{
+                        table_lex[counterLexical].type = slashsym;
+                        strcpy(table_lex[counterLexical].symbolicRep, "slashsym"); 
+                        counterLexical++;
+                    }
+                    break;
+                //(
+                case 4:
+                    table_lex[counterLexical].type = lparentsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "lparentsym"); 
+                    counterLexical++;
+                    break;
+                //)
+                case 5:
+                    table_lex[counterLexical].type = rparentsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "rparentsym"); 
+                    counterLexical++;
+                    break;
+                //=
+                case 6:
+                    table_lex[counterLexical].type = eqlsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "eqlsym"); 
+                    counterLexical++;
+                    break;
+                //,
+                case 7:
+                    table_lex[counterLexical].type = commasym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "commasym"); 
+                    counterLexical++;
+                    break;
+                //.
+                case 8:
+                    table_lex[counterLexical].type = periodsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "periodsym"); 
+                    counterLexical++;
+                    break;
+                //<>
+                case 9:
+                    tok =fgetc(ifp);
+                    forward=1;
+                    if(tok =='>'){
+                        table_lex[counterLexical].type = neqsym;
+                        strcpy(table_lex[counterLexical].symbolicRep, "neqsym"); 
+                        forward=0;
+                    }
+                    //<=
+                    else if(tok =='='){
+                        table_lex[counterLexical].type = leqsym;
+                        strcpy(table_lex[counterLexical].symbolicRep, "leqsym"); 
+                        forward=0;
+                    }
+                    //<
+                    else{
+                        table_lex[counterLexical].type = lessym;
+                        strcpy(table_lex[counterLexical].symbolicRep, "lessym"); 
+                    }
+                    counterLexical++;
+                    break;
+                //>=
+                case 10:
+                    tok = fgetc(ifp);
+                    forward=1;
+                    if(tok =='='){
+                        table_lex[counterLexical].type = geqsym;
+                        strcpy(table_lex[counterLexical].symbolicRep, "geqsym"); 
+                        forward=0;
+                    }
+                    //>
+                    else{
+                        table_lex[counterLexical].type = gtrsym;
+                        strcpy(table_lex[counterLexical].symbolicRep, "gtrsym"); 
+                    }
+                    counterLexical++;
+                    break;
+                //;
+                case 11:
+                    table_lex[counterLexical].type = semicolonsym;
+                    strcpy(table_lex[counterLexical].symbolicRep, "semicolonsym"); 
+                    counterLexical++;
+                    break;
+                //:=
+                case 12:
+                    tok =fgetc(ifp);
+                    if(tok == '='){
+                        table_lex[counterLexical].type = becomessym;
+                        strcpy(table_lex[counterLexical].symbolicRep, "becomessym"); 
+                        counterLexical++;
+                    }
+                    //If none of the symbols then print error
+                    else{
+                        printf("Error 27: Invalid symbols are not accepted.\n");
+                    }
+                    break;
+                    //Prints Error 4 for invalid symbols
+                default:
+                    printf("Error 27: Invalid symbols are not accepted.\n");
+                    break;
+            }
+        }
+//----------------------------------------------------------------------------------------
+        //Get Next Character
+        if(forward==0){
+            tok = fgetc(ifp);
+        }
+    }
 
-    convertAlphaReserved();
-    convertDigitReserved(); 
-    convertSymbolReserved(); 
-    printTable(ofp); 
-    
-    //Part III 
-    printLexemeList(ofp);
+    //Print Lexeme List
+    for(i = 0;i < counterLexical; i++){
+        fprintf(ofp,"%d ", table_lex[i].type);
+        if(table_lex[i].type== 2){
+            fprintf(ofp,"%s ", table_lex[i].identifier);
+        }
+        else if(table_lex[i].type== 3){
+            fprintf(ofp,"%d ",table_lex[i].num);
+        }
+    }
+    fclose(ifp);
+    fclose(ofp);
 
-    return 0;
-} //End of Main
+    if(lexFlag) {
+        char temp; 
+        ifp = fopen(inputName, "r"); 
+        ofp = fopen("lexemeList.txt", "r");
+        fseek(ofp, 0, SEEK_SET);
+        printf("Lexeme List:\n");
+        temp = fgetc(ofp);
+        while(temp != EOF) {
+             printf("%c", temp); 
+             temp = fgetc(ofp);
+        }
+        printf("\n\n");
+
+      //Print symbolic representation of lexical List
+       for(i = 0;i < counterLexical; i++){
+            printf("%s ", table_lex[i].symbolicRep);
+         if(table_lex[i].type== 2){
+              printf("%s ", table_lex[i].identifier);
+          }
+         else if(table_lex[i].type== 3){
+              printf("%d ",table_lex[i].num);
+         }
+       }  
+        printf("\n\n");
+
+        char too;
+        too = fgetc(ifp); 
+        
+        while(too != EOF) { 
+           if(too == '.') {
+              printf("No errors, program is syntactically correct\n\n\n"); 
+            break;
+           }
+            else 
+              too = fgetc(ifp);
+          }
+   
+        if(too != '.')
+           printf("***** Error number #9, period expected \n\n\n"); 
+
+        fseek(ifp, 0, SEEK_SET);
+        fclose(ofp);
+     }
+   }
