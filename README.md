@@ -13,6 +13,7 @@
         Ignore the error about "Couldn't delete input text file", we wanted to not delete the input text file
 
 **Original Instructions**
+
 ![image](https://user-images.githubusercontent.com/43329669/83373586-e58f0a00-a396-11ea-961c-ff9e7ce6a374.png)
 ![image](https://user-images.githubusercontent.com/43329669/83373604-fb043400-a396-11ea-9e7b-ad8a8e0136a5.png)
 ![image](https://user-images.githubusercontent.com/43329669/83373664-26871e80-a397-11ea-8762-2d18098a299a.png)
